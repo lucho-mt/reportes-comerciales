@@ -1,0 +1,413 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' https://script.google.com https://script.googleusercontent.com https://lalofissore.github.io; worker-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'; manifest-src 'none'">
+<meta name="referrer" content="no-referrer">
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="color-scheme" content="light dark">
+<title>Reportes Comerciales Reimpulso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap">
+<style>
+/* Layout: barra de control (mes + filtro de soportes) arriba; secciones apiladas que suman los soportes elegidos */
+:root{
+  /* Marca Reimpulso: azul #0660df protagonista, verde pastel #ddf7b7, negro #141414, fondo #f4f7f1, Inter */
+  --bg:#f9fbf7; --surface:#ffffff; --ink:#141414; --muted:#5d655e; --line:#e4e9e0;
+  --contr:#0660df; --contr-h:#0551b8; --plus:#b4e27e; --plus-borde:#b4e27e; --plus-hover:#a3d468; --libre:#eceff0; --limite:#d0342c; --warn:#c08412;
+  --chip:#f1f4ee; --pastel:#ddf7b7; --ok:#3d7a17; --shadow:0 6px 18px rgba(20,20,20,.08);
+  --side:#141414; --side-ink:#f4f7f1; --side-muted:#9ba49c;
+  --f-display:"Inter", "Helvetica Neue", Arial, sans-serif;
+  --f-body:"Inter", "Helvetica Neue", Arial, sans-serif;
+  --f-mono:"Inter", "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#0f1210; --surface:#181c19; --ink:#f1f4ee; --muted:#9aa39b; --line:#2a302b;
+  --contr:#4b8ff2; --contr-h:#6aa3f5; --plus:#c9ef9a; --plus-borde:#c9ef9a; --plus-hover:#d8f5b4; --libre:#252b26; --limite:#f0604f; --warn:#e0a743; --chip:#1f2520; --pastel:#ddf7b7; --ok:#b6e58a; --shadow:0 6px 18px rgba(0,0,0,.35);
+  --side:#0a0c0b; --side-ink:#f1f4ee; --side-muted:#8d968e; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#0f1210; --surface:#181c19; --ink:#f1f4ee; --muted:#9aa39b; --line:#2a302b;
+  --contr:#4b8ff2; --contr-h:#6aa3f5; --plus:#c9ef9a; --plus-borde:#c9ef9a; --plus-hover:#d8f5b4; --libre:#252b26; --limite:#f0604f; --warn:#e0a743; --chip:#1f2520; --pastel:#ddf7b7; --ok:#b6e58a; --shadow:0 6px 18px rgba(0,0,0,.35);
+  --side:#0a0c0b; --side-ink:#f1f4ee; --side-muted:#8d968e; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;margin:0}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:20px;padding-block:0 64px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;flex-wrap:wrap;gap:12px 24px;align-items:center;justify-content:space-between;padding-block:14px}
+.brand{display:flex;flex-direction:column;gap:2px}
+.brand b{font-family:var(--f-display);font-weight:800;font-size:20px;letter-spacing:-.01em;color:var(--ink)}
+.brand span{color:var(--muted);font-size:13px}
+.controls{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end}
+.ctl[hidden]{display:none!important}
+.ctl{display:flex;flex-direction:column;gap:3px;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+select,.filtro-btn{font:inherit;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 10px;min-width:0;max-width:100%}
+select:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,tr[tabindex]:focus-visible{outline:2px solid var(--contr);outline-offset:2px}
+/* filtro de soportes */
+details.filtro{position:relative}
+details.filtro summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:8px;text-transform:none;letter-spacing:0;min-width:220px;justify-content:space-between}
+details.filtro summary::-webkit-details-marker{display:none}
+details.filtro summary::after{content:"▾";color:var(--muted)}
+details.filtro[open] summary::after{content:"▴"}
+.pop{position:absolute;right:0;top:calc(100% + 6px);z-index:10;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:14px;width:min(560px,calc(100vw - 32px));max-height:min(70vh,560px);overflow:auto;text-transform:none;letter-spacing:0;color:var(--ink);font-size:14px}
+.pop-acc{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.pop-acc button{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--chip);color:var(--ink);border-radius:99px;padding:5px 12px;cursor:pointer;transition:background .15s,border-color .15s}
+.pop-acc button:hover{border-color:var(--contr)}
+.grupo{border-top:1px solid var(--line);padding-block:10px}
+.grupo-h{display:flex;align-items:center;gap:8px;font-weight:600;font-size:13px;margin-bottom:6px}
+.grupo-items{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:2px 12px;padding-left:24px}
+.pop label{display:flex;align-items:center;gap:8px;cursor:pointer;padding:3px 4px;border-radius:5px}
+.pop label:hover{background:var(--chip)}
+.pop input{accent-color:var(--contr);width:16px;height:16px;margin:0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.chip{font-size:12.5px;background:var(--surface);border:1px solid var(--line);border-radius:99px;padding:3px 6px 3px 11px;display:inline-flex;align-items:center;gap:6px}
+.chip button{font:inherit;border:0;background:transparent;color:var(--muted);cursor:pointer;padding:0 4px;font-size:14px;line-height:1}
+.chip button:hover{color:var(--limite)}
+.aviso{margin-top:18px;background:var(--chip);border:1px dashed var(--line);border-radius:8px;padding:10px 14px;font-size:13px;color:var(--muted)}
+.aviso b{color:var(--ink)}
+section{margin-top:40px}
+.sec-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:6px 20px;margin-bottom:14px}
+h2{font-family:var(--f-display);font-weight:800;font-size:22px;letter-spacing:-.01em;margin:0;text-wrap:balance}
+.sec-head p{margin:0;color:var(--muted);font-size:13.5px;max-width:62ch}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:18px}
+.num{font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted)}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:6px;vertical-align:-1px}
+.legend i.ln{height:3px;width:16px;vertical-align:3px;border-radius:2px}
+/* "¿Cómo se lee?" */
+details.leer{margin-top:12px;font-size:13.5px;color:var(--muted)}
+details.leer summary{cursor:pointer;color:var(--contr);font-weight:600;width:fit-content}
+details.leer div{margin-top:8px;max-width:75ch;display:flex;flex-direction:column;gap:6px}
+details.leer b{color:var(--ink)}
+/* tablas */
+.tbl-scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600;text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+td{padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:middle}
+td.r,th.r{text-align:right}
+tbody tr{transition:background .15s}
+tbody tr:hover{background:var(--chip)}
+tfoot td{font-weight:600;border-bottom:0;border-top:2px solid var(--line)}
+#tblSop tbody tr{cursor:pointer}
+tbody tr.sel{background:var(--chip)}
+tbody tr.sel{background:color-mix(in srgb,var(--contr) 9%,var(--surface))}
+.focobar{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-bottom:14px;font-size:13.5px;color:var(--muted)}
+.focobar b{color:var(--ink)}
+.focobar .btn{margin-top:0}
+.sopname{font-weight:600;white-space:nowrap}
+.soptipo{display:block;font-size:11.5px;color:var(--muted);font-weight:400}
+.bar{position:relative;height:14px;background:var(--libre);border-radius:3px;overflow:hidden;min-width:180px}
+.bar span{position:absolute;top:0;bottom:0;width:0}
+.bar span.fin{border-radius:0 3px 3px 0}
+.bar .c{background:var(--contr)} .bar .p{background:var(--plus)} .bar .x{background:var(--limite)}
+.bar .cap{position:absolute;top:0;bottom:0;width:2px!important;background:var(--limite);transition:none}
+.pill{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
+.pill.ok{background:color-mix(in srgb,var(--plus) 18%,transparent);color:var(--ok)}
+.pill.alto{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
+.pill.exc{background:color-mix(in srgb,var(--limite) 16%,transparent);color:var(--limite)}
+/* KPIs */
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:16px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;min-width:0;transition:transform .18s,box-shadow .18s,border-color .18s}
+.kpi:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:color-mix(in srgb,var(--contr) 35%,var(--line))}
+.kpi .v{font-size:24px;font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.kpi .s{font-size:12px;color:var(--muted)}
+.chartbox{position:relative;height:300px}
+.grid2{display:grid;grid-template-columns:2fr 1fr;gap:16px}
+.grid2>*{min-width:0}
+@media (max-width:820px){.grid2{grid-template-columns:1fr}}
+.tc{font-size:11px;font-weight:600;padding:1px 6px;border-radius:4px;background:var(--chip);color:var(--muted)}
+.tc.TOP{color:var(--contr)} .tc.NUEVO{color:var(--ok)}
+.fijo{font-size:11px;color:var(--muted);margin-left:6px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg button{font:inherit;font-size:13px;background:var(--surface);color:var(--ink);border:0;border-right:1px solid var(--line);padding:7px 14px;cursor:pointer;transition:background .15s}
+.seg button:hover{background:var(--chip)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--contr);color:var(--surface)}
+.btn{font:inherit;font-size:13px;margin-top:10px;background:var(--surface);color:var(--contr);border:1px solid var(--line);border-radius:7px;padding:6px 14px;cursor:pointer;transition:border-color .15s}
+.btn:hover{border-color:var(--contr)}
+.delta-up{color:var(--limite)} .delta-dn{color:var(--ok)}
+.nota{font-size:12.5px;color:var(--muted);margin-top:10px}
+.vacio{padding:30px;text-align:center;color:var(--muted)}
+footer{margin-top:48px;color:var(--muted);font-size:12.5px;border-top:1px solid var(--line);padding-top:16px}
+/* lectura de gráfico: reemplaza al cuadro flotante, así no tapa nada */
+.lectura{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 18px;min-height:46px;padding:9px 12px;border-radius:8px;background:var(--chip);margin-bottom:12px;font-size:13px;color:var(--muted);transition:background .2s}
+.lectura.activa{background:color-mix(in srgb,var(--contr) 10%,var(--chip))}
+.lectura .t{color:var(--ink);font-weight:700;font-size:14px;min-width:150px}
+.lectura .v{color:var(--ink);font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.lectura i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:0}
+.lectura .ayuda{font-size:12px}
+.delta-prev{display:block;font-size:11px;color:var(--muted);white-space:nowrap}
+/* cuadro de la tabla de disponibilidad */
+.tip{position:absolute;z-index:30;background:var(--ink);color:var(--surface);padding:10px 12px;border-radius:8px;font-size:12.5px;line-height:1.5;pointer-events:none;box-shadow:var(--shadow);width:max-content;max-width:260px;transform:translate(-50%,-100%);margin-top:-8px}
+.tip b{font-size:13.5px}
+.tip .k{opacity:.75}
+/* menú lateral */
+.app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100%}
+.col{min-width:0}
+.side{position:sticky;top:0;height:100vh;overflow-y:auto;background:var(--side);color:var(--side-ink);padding:22px 16px;display:flex;flex-direction:column;gap:6px;z-index:40}
+.side .logo{color:var(--side-ink);width:150px;display:block;margin:0 6px 2px}
+.side .logo svg{width:100%;height:auto;display:block}
+.side-sub{font-size:12px;color:var(--side-muted);margin:0 6px 18px}
+.side-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--side-muted);margin:16px 8px 6px;font-weight:600}
+.side nav{display:flex;flex-direction:column;gap:2px}
+.side button,.side a{font:inherit;font-size:14px;text-align:left;color:var(--side-ink);background:transparent;border:0;border-radius:8px;padding:9px 10px;cursor:pointer;text-decoration:none;display:flex;align-items:center;gap:10px;transition:background .15s,color .15s}
+.side button:hover,.side a:hover{background:rgba(255,255,255,.07)}
+.side button[aria-current="page"]{background:var(--contr);color:#fff;font-weight:600}
+.side button svg{width:17px;height:17px;flex:none;opacity:.9}
+.side-sec a{font-size:13px;color:var(--side-muted);padding:6px 10px 6px 14px;border-radius:6px}
+.side-sec a.activa{color:var(--side-ink);background:rgba(255,255,255,.09);font-weight:600}
+.side-foot{margin-top:auto;padding:14px 8px 0;font-size:11.5px;color:var(--side-muted);border-top:1px solid rgba(255,255,255,.08)}
+.btn-menu{display:none;font:inherit;font-size:14px;font-weight:600;align-items:center;gap:8px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:7px 12px;cursor:pointer}
+.velo{display:none}
+@media (max-width:1000px){
+  .app{grid-template-columns:1fr}
+  .side{position:fixed;left:0;top:0;bottom:0;width:min(280px,85vw);transform:translateX(-100%);transition:transform .25s ease}
+  .side.abierta{box-shadow:0 0 40px rgba(0,0,0,.3)}
+  .side.abierta{transform:none}
+  .velo.abierta{display:block;position:fixed;inset:0;background:rgba(0,0,0,.35);z-index:35}
+  .btn-menu{display:inline-flex}
+}
+/* pestañas */
+.tabs{flex-basis:100%;display:flex;gap:4px;border-top:1px solid var(--line);padding-top:10px;margin-top:2px;overflow-x:auto}
+.tabs button{font:inherit;font-size:14px;font-weight:600;background:transparent;color:var(--muted);border:0;border-radius:7px;padding:7px 14px;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s}
+.tabs button:hover{background:var(--chip);color:var(--ink)}
+.tabs button[aria-selected="true"]{background:var(--ink);color:var(--surface)}
+.vista[hidden]{display:none!important}
+.vista{animation:entra .35s ease-out}
+@keyframes entra{from{opacity:.4;transform:translateY(6px)}to{opacity:1;transform:none}}
+.delta{font-size:11.5px;font-weight:600;white-space:nowrap}
+.delta.up{color:var(--ok)} .delta.dn{color:var(--limite)} .delta.eq{color:var(--muted)}
+.buscar{font:inherit;font-size:14px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:7px 10px;width:min(320px,100%)}
+.buscar:focus-visible{outline:2px solid var(--contr);outline-offset:2px}
+.toolbar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;margin-bottom:12px}
+.mini{display:inline-block;height:8px;border-radius:2px;background:var(--plus);vertical-align:middle;margin-right:6px}
+/* mapa de calor de disponibilidad */
+#tblDisp td.cel{text-align:center;padding:6px;min-width:96px;cursor:pointer}
+.celda{border-radius:7px;padding:7px 6px;display:flex;flex-direction:column;gap:1px;transition:transform .15s,box-shadow .15s;animation:aparece .5s ease-out both;animation-delay:calc(var(--i,0) * 18ms)}
+.celda b{font-family:var(--f-mono);font-size:15px;font-weight:500}
+.celda span{font-size:11px;opacity:.85}
+td.cel:hover .celda{transform:scale(1.06);box-shadow:var(--shadow)}
+@keyframes aparece{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:none}}
+.escala{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.escala i{display:inline-block;width:28px;height:12px;border-radius:3px}
+@media (max-width:1000px){ header.top .wrap{position:relative} details.filtro{position:static} .pop{left:20px;right:20px;width:auto} }
+@media (max-width:600px){ header.top{position:static} .kpi .v{font-size:19px} details.filtro summary{min-width:0} }
+@media (max-width:520px){ .bar{min-width:120px} h2{font-size:19px} }
+@media (prefers-reduced-motion: reduce){ .bar span,.kpi,.bar{transition:none} .vista,.celda{animation:none} }
+.cargando{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:var(--bg);padding:20px}
+.cargando[hidden]{display:none}
+.cargando-caja{display:flex;flex-direction:column;gap:12px;width:min(420px,100%);font-size:15px}
+.cargando-barra{height:6px;border-radius:3px;background:var(--libre);overflow:hidden}
+.cargando-barra span{display:block;height:100%;width:0;background:var(--contr);transition:width .3s}
+.cargando-nota{font-size:12.5px;color:var(--muted)}
+.cargando.error .cargando-barra{display:none}
+.aviso-motor{margin:0 0 10px;color:#f6c76b;font-size:11.5px}
+</style>
+</head>
+<body>
+
+
+<div class="app">
+<aside class="side" id="side" aria-label="Menú">
+  <span class="logo"><svg viewBox="0 0 750.63 132.47" xmlns="http://www.w3.org/2000/svg" fill="currentColor" role="img" aria-label="Reimpulso"> <g> <g> <path d="M720.55,15.64c0-9.25,6.77-15.64,15.07-15.64s15,6.38,15,15.64-6.77,15.64-15,15.64-15.07-6.38-15.07-15.64ZM747.25,15.64c0-7.4-4.99-12.6-11.63-12.6s-11.69,5.2-11.69,12.6,5.06,12.53,11.69,12.53,11.63-5.06,11.63-12.53ZM729.74,7.49h6.2c3.38,0,6.27,1.4,6.27,5.15,0,1.87-1.13,3.66-2.96,4.33l3.57,6.46h-3.85l-2.69-5.38h-3.06v5.38h-3.49V7.49ZM735.19,15.4c2.04,0,3.21-.96,3.21-2.59,0-1.44-.86-2.5-3.08-2.5h-2.1v5.09h1.97Z"/> <g> <path d="M224.05,28.49c-3.38,0-6.27-1.09-8.67-3.27-2.4-2.18-3.6-4.91-3.6-8.2s1.2-6.13,3.6-8.27c2.4-2.13,5.29-3.2,8.67-3.2s6.27,1.07,8.67,3.2c2.4,2.13,3.6,4.89,3.6,8.27s-1.2,6.02-3.6,8.2c-2.4,2.18-5.29,3.27-8.67,3.27M205.52,103.41v-6.8l6-1.33c.09-3.29.13-6.73.13-10.33v-15.93c0-3.64-.02-6.69-.07-9.13-.05-2.44-.16-5-.34-7.67l-7.2-1.2v-5.47l30.93-9.2,2.4,1.47-.4,19.86v27.4c0,3.69.04,7.13.13,10.33l5.6,1.2v6.8h-37.2,0Z"/> <path d="M250.75,103.41v-6.8l6.13-1.47c.09-3.2.13-6.6.13-10.2v-23.8c0-1.51-.02-2.93-.07-4.27-.05-1.33-.16-2.89-.33-4.67l-7.2-1.2v-5.47l29.46-9.2,2.4,1.47.67,9.2c3.11-3.73,6.22-6.44,9.33-8.13,3.11-1.69,6.62-2.53,10.53-2.53,9.42,0,15.55,3.87,18.4,11.6,3.73-4.62,7.15-7.71,10.26-9.27,3.11-1.55,6.49-2.33,10.13-2.33,7.29,0,12.51,2,15.67,6,3.15,4,4.73,9.91,4.73,17.73v25.06c0,3.65.04,7.07.13,10.26l5.6,1.2v6.8h-35.73v-6.8l5.07-1.33c.09-3.2.13-6.62.13-10.26v-23.06c0-4.53-.44-7.55-1.33-9.07-.89-1.51-2.49-2.27-4.8-2.27-2.85,0-5.69,1.07-8.53,3.2.09.71.16,1.46.2,2.27.04.8.07,1.64.07,2.53v26.53c0,3.65.04,7.11.13,10.4l5.07,1.07v6.8h-35.86v-6.8l5.73-1.47c.09-3.11.13-6.49.13-10.13v-23.06c0-4.09-.42-7-1.27-8.73-.85-1.73-2.56-2.6-5.13-2.6-1.33,0-2.71.31-4.13.93-1.42.62-2.8,1.42-4.13,2.4v31.13c0,3.69.04,7.18.13,10.47l5.07,1.07v6.8h-36.79Z"/> <path d="M412.62,47.31c-1.16,0-2.25.18-3.27.53-1.02.36-2.02.85-3,1.47v39.33c1.78,1.25,3.86,1.87,6.27,1.87,3.55,0,6.4-1.8,8.53-5.4,2.13-3.6,3.2-9.18,3.2-16.73s-1.07-13.07-3.2-16.26c-2.13-3.2-4.98-4.8-8.53-4.8M374.69,131.75v-6.93l6-1.33c.09-4.45.22-9.5.27-13.18.04-3.69.07-7.09.07-10.2v-35.19c0-2.49-.02-4.49-.07-6-.04-1.51-.09-2.93-.13-4.27-.05-1.33-.11-2.89-.2-4.67l-7.2-1.2v-5.47l29.2-9.2,2.27,1.2.53,7.07c5.42-5.51,11.91-8.27,19.46-8.27,4.89,0,9.33,1.27,13.33,3.8,4,2.53,7.17,6.33,9.53,11.4,2.35,5.07,3.53,11.42,3.53,19.06s-1.38,13.53-4.13,18.73c-2.76,5.2-6.33,9.2-10.73,12-4.4,2.8-9.09,4.2-14.06,4.2-3.56,0-6.67-.56-9.33-1.67-2.67-1.11-5.02-2.69-7.07-4.73v3.2c0,3.02.02,6.33.07,9.93.04,3.6.04,8.52.13,12.78l7.07,2v6.93h-38.53,0Z"/> <path d="M504.98,102.88l-.53-10.53c-2.67,3.47-5.73,6.18-9.2,8.13-3.47,1.95-7.33,2.93-11.6,2.93-5.87,0-10.6-1.8-14.2-5.4-3.6-3.6-5.36-9.8-5.27-18.6l.53-32.26-6.93-1.6v-6l30.26-4.67,2.4,1.47-.67,18.93v24.8c0,3.47.55,5.85,1.67,7.13,1.11,1.29,2.51,1.93,4.2,1.93,1.33,0,2.73-.44,4.2-1.33,1.47-.89,2.91-2,4.33-3.33l.53-37.46-6.4-1.47v-5.33l29.46-5.33,2.4,1.47-.4,18.93v37.99l6.13,1.33v8.26h-30.93Z"/> <path d="M542.61,103.41v-6.8l6-1.33c.09-3.38.16-6.71.2-10,.04-3.29.06-6.58.06-9.87V20.63l-6.27-1.16v-6.35s29.87-5.82,29.87-5.82l2.27,1.47-.53,18.53v48.13c0,3.29.02,6.6.07,9.93.04,3.33.11,6.69.2,10.07l6,1.2v6.8h-37.86Z"/> <path d="M611.7,103.41c-9.25,0-17.42-2.18-24.53-6.53l.67-17.06h12.13l2.13,13.86c1.51.62,3.07,1.09,4.67,1.4,1.6.31,3.24.47,4.93.47,3.38,0,6-.53,7.86-1.6,1.87-1.07,2.8-2.84,2.8-5.33,0-1.78-.69-3.38-2.07-4.8-1.38-1.42-4.29-2.71-8.73-3.87l-7.6-2c-5.24-1.42-9.24-3.93-12-7.53-2.76-3.6-4.13-7.98-4.13-13.13,0-6.67,2.55-12.18,7.66-16.53,5.11-4.35,12.46-6.53,22.06-6.53,4.09,0,7.89.45,11.4,1.33,3.51.89,7.09,2.22,10.73,4l-1.07,15.06h-12.26l-2.93-11.87c-.89-.18-1.85-.33-2.87-.47-1.02-.13-2.25-.2-3.67-.2-2.49,0-4.6.56-6.33,1.67-1.73,1.11-2.6,2.82-2.6,5.13,0,1.42.62,2.8,1.87,4.13,1.24,1.33,4.18,2.62,8.8,3.87l7.46,2c6.22,1.69,10.69,4.31,13.4,7.87,2.71,3.56,4.07,7.96,4.07,13.2,0,7.82-2.87,13.69-8.6,17.6-5.73,3.91-13.49,5.87-23.26,5.87"/> <path d="M685.45,96.08c2.93,0,5.09-2.13,6.47-6.4,1.38-4.26,2.07-11.24,2.07-20.93s-.69-16.64-2.07-20.86c-1.38-4.22-3.53-6.33-6.47-6.33s-5.09,2.11-6.47,6.33c-1.38,4.22-2.07,11.18-2.07,20.86s.69,16.66,2.07,20.93c1.38,4.26,3.53,6.4,6.47,6.4M685.45,103.41c-7.64,0-14.09-1.53-19.33-4.6-5.25-3.06-9.2-7.26-11.86-12.6-2.67-5.33-4-11.29-4-17.86s1.51-12.55,4.53-17.67c3.02-5.11,7.18-9.13,12.46-12.06,5.29-2.93,11.35-4.4,18.2-4.4s12.91,1.45,18.2,4.33c5.29,2.89,9.44,6.89,12.46,12,3.02,5.11,4.53,11.05,4.53,17.8s-1.36,12.78-4.07,18.06c-2.71,5.29-6.67,9.44-11.87,12.46-5.2,3.02-11.62,4.53-19.26,4.53"/> <path d="M132.14,41.42c-2.05,0-3.78,1.51-5.2,4.53-1.42,3.02-2.22,8.67-2.4,16.93h6.27c3.2,0,5.35-.64,6.47-1.93,1.11-1.29,1.67-3.62,1.67-7,0-4.62-.69-7.87-2.07-9.73-1.38-1.87-2.96-2.8-4.73-2.8"/> <path d="M162.27,67.09c-.09,1.02-.27,2.16-.53,3.4h-37.06c.71,6.49,2.64,11.2,5.8,14.13,3.15,2.93,6.69,4.4,10.6,4.4,3.38,0,6.29-.6,8.73-1.8,2.44-1.2,4.6-2.69,6.47-4.47l5.2,5.07c-2.85,5.42-6.73,9.38-11.67,11.86-4.93,2.49-10.69,3.73-17.27,3.73s-12.6-1.38-17.8-4.13c-5.2-2.75-9.31-6.73-12.33-11.93-3.02-5.2-4.53-11.44-4.53-18.73,0-5.78,1.02-10.8,3.07-15.06,2.04-4.26,4.8-7.84,8.27-10.73,3.47-2.89,7.33-5.04,11.6-6.47,4.26-1.42,8.58-2.13,12.93-2.13,6.4,0,11.71,1.31,15.93,3.93,4.22,2.62,7.4,6.13,9.53,10.53,2.13,4.4,3.2,9.31,3.2,14.73,0,1.42-.04,2.65-.13,3.67M87.85,56.55c-1.96,2-4.26,3-6.93,3-4.09,0-7.82-2.44-11.2-7.33l-.67-.93c-1.6,1.78-3.18,4.09-4.73,6.93-1.56,2.85-2.6,5.78-3.13,8.8v17.46c0,3.47.04,6.76.13,9.87l10.4,2.27v6.8H29.33v-6.8l6.4-1.47c.09-3.2.13-6.6.13-10.2v-17.93c0-2.49-.02-4.49-.07-6-.05-1.51-.09-2.91-.13-4.2-.05-1.29-.11-2.82-.2-4.6l-7.2-1.2v-5.47l29.46-9.2,2.4,1.47,1.07,15.46c1.78-5.78,4.33-10.04,7.67-12.8,3.33-2.75,6.6-4.13,9.8-4.13s6.07.96,8.33,2.87c2.27,1.91,3.62,4.91,4.07,9-.18,3.56-1.25,6.33-3.2,8.33M15.3,5.17L0,132.47h175.37l15.3-127.29H15.3Z"/> </g> </g> </g> </svg></span>
+  <span class="side-sub">Reportes comerciales · uso interno</span>
+  <div class="side-label">Vistas</div>
+  <nav id="sideNav">
+    <button type="button" data-v="sop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>Soportes</button>
+    <button type="button" data-v="anun"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Anunciantes</button>
+    <button type="button" data-v="disp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Disponible</button>
+  </nav>
+  <div class="side-label">En esta vista</div>
+  <nav class="side-sec" id="sideSec"></nav>
+  <div class="side-foot">Datos de la planilla de Tráfico de Pautas al <span class="fechaFotoX"></span>.</div>
+</aside>
+<div class="velo" id="velo"></div>
+<div class="col">
+<header class="top"><div class="wrap">
+  <div class="brand" style="flex-direction:row;align-items:center;gap:12px"><button type="button" class="btn-menu" id="btnMenu" aria-controls="side" aria-expanded="false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>Menú</button><span style="display:flex;flex-direction:column;gap:2px"><b id="tituloVista">Soportes</b><span>Reportes comerciales · Reimpulso</span></span></div>
+  <div class="controls">
+    <label class="ctl" for="selMes" id="ctlMes">Mes<select id="selMes"></select></label>
+    <div class="ctl"><span id="lblFiltro">Soportes</span>
+      <details class="filtro" id="filtro">
+        <summary class="filtro-btn" aria-labelledby="lblFiltro filtroResumen"><span id="filtroResumen">Todos</span></summary>
+        <div class="pop" id="pop"></div>
+      </details>
+    </div>
+  </div>
+</div></header>
+
+<div class="cargando" id="cargando" role="status" aria-live="polite">
+  <div class="cargando-caja"><b id="cargandoTexto">Leyendo la planilla de Tráfico de Pautas…</b>
+  <div class="cargando-barra"><span id="cargandoBarra"></span></div>
+  <span class="cargando-nota">Los datos se leen en vivo cada vez que abrís la página.</span></div>
+</div>
+<main class="wrap">
+  <div class="chips" id="chips"></div>
+  <div class="aviso" id="estadoDatos" role="status">Leyendo la planilla…</div>
+
+  <div class="vista" id="vSop">
+  <section id="s1">
+    <div class="sec-head">
+      <div><div class="eyebrow">1 · Ventas por soporte</div><h2>Minutos comercializados y ocupación</h2></div>
+      <p>Pauta tradicional del mes, en minutos. Tocá un soporte para ver su detalle abajo; tocalo de nuevo para volver a la suma. El filtro de arriba elige qué soportes entran.</p>
+    </div>
+    <div class="panel">
+      <div class="legend" style="margin-bottom:10px"><span><i style="background:var(--contr)"></i>Contratado</span><span><i style="background:var(--plus)"></i>Plus</span><span><i style="background:var(--libre)"></i>Libre</span><span><i class="ln" style="background:var(--limite)"></i>Capacidad (100%)</span><span><i style="background:var(--limite)"></i>Vendido de más</span></div>
+      <div class="tbl-scroll"><table id="tblSop">
+        <thead><tr><th>Soporte</th><th class="r">Capacidad</th><th class="r">Contratado</th><th class="r">Plus</th><th class="r">Ocupación vendida</th><th class="r" id="thDelta">vs. mes anterior</th><th>Ocupación del mes</th><th>Estado</th></tr></thead>
+        <tbody></tbody><tfoot></tfoot>
+      </table></div>
+      <details class="leer"><summary>¿Cómo se lee esta tabla?</summary><div>
+        <span><b>Capacidad</b>: los minutos de pauta tradicional que el soporte puede pasar en el mes. Sale de su estructura: segundos por programación × programaciones por hora × horas encendido × días.</span>
+        <span><b>Contratado</b>: los minutos que se vendieron (salidas contratadas × duración de cada pieza).</span>
+        <span><b>Plus</b>: los minutos extra que se regalaron con el espacio que sobraba.</span>
+        <span><b>Ocupación vendida</b>: contratado ÷ capacidad. Si pasa de 100%, el soporte está sobrevendido: se vendió más de lo que entra y no hay Plus.</span>
+        <span>En la barra, la línea roja marca el 100%. Lo que queda gris es espacio que no salió al aire.</span>
+        <span><b>vs. mes anterior</b>: cuánto cambió la ocupación vendida contra el mes anterior, en <b>puntos</b>. Un punto es la diferencia entre dos porcentajes: si en agosto estaba en 38% y en setiembre en 52%, subió 14 puntos. Verde ▲ subió, rojo ▼ bajó. Abajo se ve el valor del mes anterior.</span>
+      </div></details>
+    </div>
+  </section>
+
+  <section id="sMes">
+    <div class="sec-head">
+      <div><div class="eyebrow">2 · Mes a mes</div><h2 id="tMes">Cómo viene cada mes</h2></div>
+      <p>Minutos al aire por mes contra la capacidad. El mes elegido arriba aparece resaltado; tocá otra barra para cambiar de mes.</p>
+    </div>
+    <div class="panel">
+      <div class="legend" style="margin-bottom:10px"><span><i style="background:var(--contr)"></i>Contratado</span><span><i style="background:var(--plus)"></i>Plus</span><span><i class="ln" style="background:var(--limite)"></i>Capacidad del mes</span><span><i class="ln" style="background:var(--warn)"></i>Ocupación vendida (%)</span></div>
+      <div class="lectura" id="lecMes" aria-live="polite"></div>
+      <div class="chartbox"><canvas id="chMes" aria-label="Minutos por mes"></canvas></div>
+      <details class="leer"><summary>¿Cómo se lee este gráfico?</summary><div>
+        <span>Cada barra es un mes completo: <b>azul</b> lo contratado y <b>verde</b> el Plus. La <b>línea roja</b> es la capacidad del mes, que cambia porque los meses tienen distinta cantidad de días.</span>
+        <span>La <b>línea punteada</b> (eje derecho) es la ocupación vendida: contratado ÷ capacidad.</span>
+        <span>Al pasar el mouse por un mes, sus números aparecen en la franja de arriba del gráfico, así no tapan las barras.</span>
+        <span>Los meses que todavía no terminaron muestran lo que está cargado hoy; van a subir a medida que se vendan nuevas campañas.</span>
+      </div></details>
+    </div>
+  </section>
+
+  <section id="s2">
+    <div class="sec-head">
+      <div><div class="eyebrow">3 · Desglose diario</div><h2 id="t2">Evolución de la ocupación</h2></div>
+      <p>Minutos al aire por día contra la capacidad del día.</p>
+    </div>
+    <div class="focobar" id="focobar"></div>
+    <div class="kpis" id="kpis"></div>
+    <div class="panel">
+      <div class="legend" style="margin-bottom:10px"><span><i style="background:var(--contr)"></i>Contratado</span><span><i style="background:var(--plus)"></i>Plus</span><span><i class="ln" style="background:var(--limite)"></i>Capacidad del día</span><span><i class="ln" style="background:var(--warn)"></i>Ocupación real acumulada, con Plus (%)</span></div>
+      <div class="lectura" id="lecDia" aria-live="polite"></div>
+      <div class="chartbox"><canvas id="chDia" aria-label="Minutos diarios de los soportes elegidos"></canvas></div>
+      <details class="leer"><summary>¿Cómo se lee este gráfico?</summary><div>
+        <span>Cada barra es un día. <b>Azul</b>: minutos contratados ese día. <b>Verde</b>: minutos de Plus. La <b>línea roja</b> es el techo: todo lo que el soporte puede pasar ese día. El espacio entre la barra y la línea roja quedó libre.</span>
+        <span>La <b>línea punteada</b> (eje derecho, en %) es la ocupación real acumulada (contratado + Plus) desde el día 1 hasta ese día. El último día muestra la ocupación del mes entero.</span>
+        <span>Al pasar el mouse por un día, la franja de arriba del gráfico muestra sus números: cuánto quedó libre y la ocupación de ese día. Sin mouse, muestra el total del mes.</span>
+        <span>Las barras cambian de altura cuando empieza o termina una campaña.</span>
+      </div></details>
+    </div>
+  </section>
+
+  <section id="s3">
+    <div class="sec-head">
+      <div><div class="eyebrow">4 · Contenidos publicitarios</div><h2 id="t3">Anunciantes y minutos exhibidos</h2></div>
+      <p>Cada campaña al aire en el mes: duración de la pieza, salidas por hora y minutos efectivamente exhibidos (contratado + Plus).</p>
+    </div>
+    <div class="panel"><div class="tbl-scroll"><table id="tblCamp">
+      <thead></thead><tbody></tbody>
+    </table></div>
+    <button type="button" id="btnTodas" class="btn" hidden>Ver todas</button>
+    <p class="nota" id="notaPE"></p></div>
+  </section>
+
+  <section id="s4">
+    <div class="sec-head">
+      <div><div class="eyebrow">5 · Plus</div><h2 id="t4">Vendido contra exhibido</h2></div>
+      <p>Cuánto de lo exhibido fue Plus, por anunciante. El Plus sale del espacio que sobra y se reparte por tipo de cliente.</p>
+    </div>
+    <div class="grid2">
+      <div class="panel"><div class="chartbox" id="boxPlus"><canvas id="chPlus" aria-label="Contratado contra exhibido por anunciante"></canvas></div></div>
+      <div class="panel" id="plusTipo"></div>
+    </div>
+  </section>
+
+  <section id="s5">
+    <div class="sec-head">
+      <div><div class="eyebrow">6 · Simulador (adelanto, fase 3)</div><h2>¿Y si todas las piezas duraran…?</h2></div>
+      <p>Recalcula la ocupación vendida del mes si todas las piezas tradicionales tuvieran la misma duración, con las mismas salidas contratadas. El espacio fijo no cambia.</p>
+    </div>
+    <div class="panel">
+      <div class="seg" role="group" aria-label="Duración simulada" id="segDur" style="margin-bottom:14px">
+        <button type="button" data-d="8" aria-pressed="false">8 s</button><button type="button" data-d="9" aria-pressed="false">9 s</button><button type="button" data-d="10" aria-pressed="true">10 s</button>
+      </div>
+      <div class="tbl-scroll"><table id="tblSim">
+        <thead><tr><th>Soporte</th><th class="r">Ocupación actual</th><th class="r">Con piezas de <span id="simD">10</span> s</th><th class="r">Diferencia</th><th class="r">Minutos que se liberan</th></tr></thead>
+        <tbody></tbody><tfoot></tfoot>
+      </table></div>
+    </div>
+  </section>
+
+  </div>
+
+  <div class="vista" id="vAnun" hidden>
+  <section id="sA1">
+    <div class="sec-head">
+      <div><div class="eyebrow">1 · Ranking</div><h2 id="tA1">Anunciantes del mes</h2></div>
+      <p>Todos los anunciantes al aire en el mes, en los soportes elegidos, ordenados por minutos exhibidos. Tocá uno para ver su reporte abajo.</p>
+    </div>
+    <div class="panel">
+      <div class="toolbar"><input type="search" id="buscarAn" class="buscar" placeholder="Buscar anunciante…" aria-label="Buscar anunciante"><span class="nota" id="cuentaAn" style="margin:0"></span></div>
+      <div class="tbl-scroll"><table id="tblAn">
+        <thead><tr><th>Anunciante</th><th>Cliente</th><th class="r">Soportes</th><th class="r">Campañas</th><th class="r">Min. contratados</th><th class="r">Min. Plus</th><th class="r">Min. exhibidos</th><th>Plus sobre lo contratado</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+      <button type="button" id="btnTodasAn" class="btn" hidden>Ver todos</button>
+    </div>
+  </section>
+
+  <section id="sA2">
+    <div class="sec-head">
+      <div><div class="eyebrow">2 · Reporte del anunciante</div><h2 id="tA2">—</h2></div>
+      <p>Dónde salió, cuánto contrató y cuánto se le regaló de Plus. Sirve como base para el reporte que se le manda al cliente.</p>
+    </div>
+    <p class="nota" id="notaAn" hidden style="margin:0 0 12px"></p>
+    <div class="kpis" id="kpisAn"></div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="panel"><div class="eyebrow" style="margin-bottom:8px">Por soporte</div><div class="chartbox" id="boxAnSop"><canvas id="chAnSop" aria-label="Minutos del anunciante por soporte"></canvas></div></div>
+      <div class="panel"><div class="eyebrow" style="margin-bottom:8px">Historia del cliente · minutos por mes</div><div class="chartbox" style="height:230px"><canvas id="chAnHist" aria-label="Minutos del anunciante por mes"></canvas></div></div>
+    </div>
+    <div class="panel" style="margin-top:16px"><div class="tbl-scroll"><table id="tblAnDet">
+      <thead><tr><th>Soporte</th><th>Campaña</th><th class="r">Pieza</th><th class="r">Días</th><th class="r">Salidas/h</th><th class="r">Plus/h</th><th class="r">Min. contratados</th><th class="r">Min. Plus</th><th class="r">Min. exhibidos</th></tr></thead>
+      <tbody></tbody><tfoot></tfoot>
+    </table></div></div>
+  </section>
+  </div>
+
+  <div class="vista" id="vDisp" hidden>
+  <section id="sD">
+    <div class="sec-head">
+      <div><div class="eyebrow">Inventario</div><h2>Espacio disponible para vender</h2></div>
+      <p>Lo que queda libre en cada soporte según las órdenes cargadas al <span class="fechaFotoX"></span>. Libre = capacidad − contratado. El Plus no cuenta: es espacio que se regala y se puede vender.</p>
+    </div>
+    <div class="kpis" id="kpisDisp"></div>
+    <div class="panel">
+      <div class="toolbar"><div class="escala"><span>Vendido:</span><i style="background:color-mix(in srgb,var(--plus) 60%,var(--surface))"></i>poco<i style="background:color-mix(in srgb,var(--warn) 35%,var(--surface))"></i>casi lleno<i style="background:color-mix(in srgb,var(--limite) 40%,var(--surface))"></i>sobrevendido</div><span class="nota" style="margin:0">Tocá una celda para ver ese soporte y ese mes.</span></div>
+      <div class="tbl-scroll"><table id="tblDisp"><thead></thead><tbody></tbody><tfoot></tfoot></table></div>
+      <details class="leer"><summary>¿Cómo se lee esta tabla?</summary><div>
+        <span>Cada celda es un soporte en un mes. El número grande es el <b>% ya vendido</b>; abajo, los <b>minutos libres</b> que quedan para vender.</span>
+        <span>Al pasar el mouse ves cuántas salidas por hora de 10 segundos entrarían en ese espacio libre, que es la forma en que se vende.</span>
+        <span>Octubre cuenta solo desde hoy hasta fin de mes. Los meses que vienen van a ir llenándose a medida que se carguen órdenes.</span>
+      </div></details>
+    </div>
+  </section>
+  </div>
+
+  <footer>Fuente: planilla de Tráfico de Pautas (lectura del endpoint <span class="num">?accion=listar</span>). Cálculo hecho con el motor de la app de tráfico. Leído el <span id="fechaFoto2"></span>.</footer>
+</main>
+</div></div>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" integrity="sha384-bs/nf9FbdNouRbMiFcrcZfLXYPKiPaGVGplVbv7dLGECccEXDW+S3zjqSKR5ZEaD" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script src="js/datos.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
