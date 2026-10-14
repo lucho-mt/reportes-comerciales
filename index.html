@@ -101,7 +101,8 @@ tbody tr.sel{background:color-mix(in srgb,var(--contr) 9%,var(--surface))}
 .bar span{position:absolute;top:0;bottom:0;width:0}
 .bar span.fin{border-radius:0 3px 3px 0}
 .bar .c{background:var(--contr)} .bar .p{background:var(--plus)} .bar .x{background:var(--limite)}
-.bar .cap{position:absolute;top:0;bottom:0;width:2px!important;background:var(--limite);transition:none}
+.leg-exc[hidden]{display:none!important}
+.bar .sobra{position:absolute;right:6px;top:0;bottom:0;display:flex;align-items:center;font-size:10.5px;font-weight:600;color:#fff;white-space:nowrap;font-variant-numeric:tabular-nums;z-index:1}
 .pill{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
 .pill.ok{background:color-mix(in srgb,var(--plus) 18%,transparent);color:var(--ok)}
 .pill.alto{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
@@ -253,7 +254,7 @@ td.cel:hover .celda{transform:scale(1.06);box-shadow:var(--shadow)}
       <p>Pauta tradicional del mes, en minutos. Tocá un soporte para ver su detalle abajo; tocalo de nuevo para volver a la suma. El filtro de arriba elige qué soportes entran.</p>
     </div>
     <div class="panel">
-      <div class="legend" style="margin-bottom:10px"><span><i style="background:var(--contr)"></i>Contratado</span><span><i style="background:var(--plus)"></i>Plus</span><span><i style="background:var(--libre)"></i>Libre</span><span><i class="ln" style="background:var(--limite)"></i>Capacidad (100%)</span><span><i style="background:var(--limite)"></i>Vendido de más</span></div>
+      <div class="legend" style="margin-bottom:10px"><span><i style="background:var(--contr)"></i>Contratado</span><span><i style="background:var(--plus)"></i>Plus</span><span><i style="background:var(--libre)"></i>Libre</span><span><i style="background:var(--limite)"></i>Sobrevendido</span><span style="color:var(--muted)">La barra completa es el 100% de la capacidad</span></div>
       <div class="tbl-scroll"><table id="tblSop">
         <thead><tr><th>Soporte</th><th class="r">Capacidad</th><th class="r">Contratado</th><th class="r">Plus</th><th class="r">Ocupación vendida</th><th class="r" id="thDelta">vs. mes anterior</th><th>Ocupación del mes</th><th>Estado</th></tr></thead>
         <tbody></tbody><tfoot></tfoot>
@@ -263,7 +264,7 @@ td.cel:hover .celda{transform:scale(1.06);box-shadow:var(--shadow)}
         <span><b>Contratado</b>: los minutos que se vendieron (salidas contratadas × duración de cada pieza).</span>
         <span><b>Plus</b>: los minutos extra que se regalaron con el espacio que sobraba.</span>
         <span><b>Ocupación vendida</b>: contratado ÷ capacidad. Si pasa de 100%, el soporte está sobrevendido: se vendió más de lo que entra y no hay Plus.</span>
-        <span>En la barra, la línea roja marca el 100%. Lo que queda gris es espacio que no salió al aire.</span>
+        <span>La <b>barra completa es el 100%</b> de la capacidad. Azul es lo vendido, verde el Plus y lo gris es espacio que quedó libre. Si el soporte está sobrevendido, la barra entera se pinta de rojo y al lado dice cuánto se pasó.</span>
         <span><b>vs. mes anterior</b>: cuánto cambió la ocupación vendida contra el mes anterior, en <b>puntos</b>. Un punto es la diferencia entre dos porcentajes: si en agosto estaba en 38% y en setiembre en 52%, subió 14 puntos. Verde ▲ subió, rojo ▼ bajó. Abajo se ve el valor del mes anterior.</span>
       </div></details>
     </div>
@@ -275,11 +276,12 @@ td.cel:hover .celda{transform:scale(1.06);box-shadow:var(--shadow)}
       <p>Minutos al aire por mes contra la capacidad. El mes elegido arriba aparece resaltado; tocá otra barra para cambiar de mes.</p>
     </div>
     <div class="panel">
-      <div class="legend" style="margin-bottom:10px"><span><i style="background:var(--contr)"></i>Contratado</span><span><i style="background:var(--plus)"></i>Plus</span><span><i class="ln" style="background:var(--limite)"></i>Capacidad del mes</span><span><i class="ln" style="background:var(--warn)"></i>Ocupación vendida (%)</span></div>
+      <div class="legend" style="margin-bottom:10px"><span><i style="background:var(--contr)"></i>Contratado</span><span><i style="background:var(--plus)"></i>Plus</span><span class="leg-exc"><i style="background:var(--limite)"></i>Vendido de más</span><span><i class="ln" style="background:var(--limite)"></i>Capacidad del mes</span><span><i class="ln" style="background:var(--warn)"></i>Ocupación vendida (%)</span></div>
       <div class="lectura" id="lecMes" aria-live="polite"></div>
       <div class="chartbox"><canvas id="chMes" aria-label="Minutos por mes"></canvas></div>
       <details class="leer"><summary>¿Cómo se lee este gráfico?</summary><div>
-        <span>Cada barra es un mes completo: <b>azul</b> lo contratado y <b>verde</b> el Plus. La <b>línea roja</b> es la capacidad del mes, que cambia porque los meses tienen distinta cantidad de días.</span>
+        <span>Cada barra es un mes completo: <b>azul</b> lo contratado que entra, <b>verde</b> el Plus y <b>rojo</b> lo vendido de más, que no entra en la pantalla (solo cuando se ve un soporte; en la suma se avisa en la franja de arriba). La <b>línea roja</b> es la capacidad del mes, que cambia porque los meses tienen distinta cantidad de días.</span>
+        <span>El espacio entre la barra y la línea roja quedó libre aun con el Plus. Pasa porque el Plus tiene reglas: un mismo anunciante no puede salir dos veces en la misma programación, y los soportes sobrevendidos no reciben Plus.</span>
         <span>La <b>línea punteada</b> (eje derecho) es la ocupación vendida: contratado ÷ capacidad.</span>
         <span>Al pasar el mouse por un mes, sus números aparecen en la franja de arriba del gráfico, así no tapan las barras.</span>
         <span>Los meses que todavía no terminaron muestran lo que está cargado hoy; van a subir a medida que se vendan nuevas campañas.</span>
@@ -295,12 +297,13 @@ td.cel:hover .celda{transform:scale(1.06);box-shadow:var(--shadow)}
     <div class="focobar" id="focobar"></div>
     <div class="kpis" id="kpis"></div>
     <div class="panel">
-      <div class="legend" style="margin-bottom:10px"><span><i style="background:var(--contr)"></i>Contratado</span><span><i style="background:var(--plus)"></i>Plus</span><span><i class="ln" style="background:var(--limite)"></i>Capacidad del día</span><span><i class="ln" style="background:var(--warn)"></i>Ocupación real acumulada, con Plus (%)</span></div>
+      <div class="legend" style="margin-bottom:10px"><span><i style="background:var(--contr)"></i>Contratado</span><span><i style="background:var(--plus)"></i>Plus</span><span class="leg-exc"><i style="background:var(--limite)"></i>Vendido de más</span><span><i class="ln" style="background:var(--limite)"></i>Capacidad del día</span><span><i class="ln" style="background:var(--warn)"></i>Ocupación real acumulada, con Plus (%)</span></div>
       <div class="lectura" id="lecDia" aria-live="polite"></div>
       <div class="chartbox"><canvas id="chDia" aria-label="Minutos diarios de los soportes elegidos"></canvas></div>
       <details class="leer"><summary>¿Cómo se lee este gráfico?</summary><div>
-        <span>Cada barra es un día. <b>Azul</b>: minutos contratados ese día. <b>Verde</b>: minutos de Plus. La <b>línea roja</b> es el techo: todo lo que el soporte puede pasar ese día. El espacio entre la barra y la línea roja quedó libre.</span>
-        <span>La <b>línea punteada</b> (eje derecho, en %) es la ocupación real acumulada (contratado + Plus) desde el día 1 hasta ese día. El último día muestra la ocupación del mes entero.</span>
+        <span>Cada barra es un día. <b>Azul</b>: minutos contratados que entran ese día. <b>Verde</b>: minutos de Plus. <b>Rojo</b> (solo cuando se ve un soporte): minutos vendidos de más, que no entran; empieza justo en la línea roja. En la suma de varios soportes no se dibuja, y la franja de arriba avisa qué soporte está vendido de más. La <b>línea roja</b> es el techo: todo lo que el soporte puede pasar ese día. El espacio entre la barra y la línea roja quedó libre.</span>
+        <span>Azul + verde nunca pasan la línea roja. Lo que la pasa es rojo: sobreventa.</span>
+        <span>La <b>línea punteada</b> (escala de la derecha, en %) es la ocupación real acumulada (contratado + Plus) desde el día 1 hasta ese día. El último día muestra la ocupación del mes entero. Las dos escalas calzan: el 100% de la derecha cae justo en la línea roja.</span>
         <span>Al pasar el mouse por un día, la franja de arriba del gráfico muestra sus números: cuánto quedó libre y la ocupación de ese día. Sin mouse, muestra el total del mes.</span>
         <span>Las barras cambian de altura cuando empieza o termina una campaña.</span>
       </div></details>

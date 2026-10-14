@@ -92,7 +92,8 @@ tbody tr.sel{background:color-mix(in srgb,var(--contr) 9%,var(--surface))}
 .bar span{position:absolute;top:0;bottom:0;width:0}
 .bar span.fin{border-radius:0 3px 3px 0}
 .bar .c{background:var(--contr)} .bar .p{background:var(--plus)} .bar .x{background:var(--limite)}
-.bar .cap{position:absolute;top:0;bottom:0;width:2px!important;background:var(--limite);transition:none}
+.leg-exc[hidden]{display:none!important}
+.bar .sobra{position:absolute;right:6px;top:0;bottom:0;display:flex;align-items:center;font-size:10.5px;font-weight:600;color:#fff;white-space:nowrap;font-variant-numeric:tabular-nums;z-index:1}
 .pill{display:inline-block;font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:99px;white-space:nowrap}
 .pill.ok{background:color-mix(in srgb,var(--plus) 18%,transparent);color:var(--ok)}
 .pill.alto{background:color-mix(in srgb,var(--warn) 18%,transparent);color:var(--warn)}
@@ -228,7 +229,7 @@ td.cel:hover .celda{transform:scale(1.06);box-shadow:var(--shadow)}
       <p>Pauta tradicional del mes, en minutos. Tocá un soporte para ver su detalle abajo; tocalo de nuevo para volver a la suma. El filtro de arriba elige qué soportes entran.</p>
     </div>
     <div class="panel">
-      <div class="legend" style="margin-bottom:10px"><span><i style="background:var(--contr)"></i>Contratado</span><span><i style="background:var(--plus)"></i>Plus</span><span><i style="background:var(--libre)"></i>Libre</span><span><i class="ln" style="background:var(--limite)"></i>Capacidad (100%)</span><span><i style="background:var(--limite)"></i>Vendido de más</span></div>
+      <div class="legend" style="margin-bottom:10px"><span><i style="background:var(--contr)"></i>Contratado</span><span><i style="background:var(--plus)"></i>Plus</span><span><i style="background:var(--libre)"></i>Libre</span><span><i style="background:var(--limite)"></i>Sobrevendido</span><span style="color:var(--muted)">La barra completa es el 100% de la capacidad</span></div>
       <div class="tbl-scroll"><table id="tblSop">
         <thead><tr><th>Soporte</th><th class="r">Capacidad</th><th class="r">Contratado</th><th class="r">Plus</th><th class="r">Ocupación vendida</th><th class="r" id="thDelta">vs. mes anterior</th><th>Ocupación del mes</th><th>Estado</th></tr></thead>
         <tbody></tbody><tfoot></tfoot>
@@ -238,7 +239,7 @@ td.cel:hover .celda{transform:scale(1.06);box-shadow:var(--shadow)}
         <span><b>Contratado</b>: los minutos que se vendieron (salidas contratadas × duración de cada pieza).</span>
         <span><b>Plus</b>: los minutos extra que se regalaron con el espacio que sobraba.</span>
         <span><b>Ocupación vendida</b>: contratado ÷ capacidad. Si pasa de 100%, el soporte está sobrevendido: se vendió más de lo que entra y no hay Plus.</span>
-        <span>En la barra, la línea roja marca el 100%. Lo que queda gris es espacio que no salió al aire.</span>
+        <span>La <b>barra completa es el 100%</b> de la capacidad. Azul es lo vendido, verde el Plus y lo gris es espacio que quedó libre. Si el soporte está sobrevendido, la barra entera se pinta de rojo y al lado dice cuánto se pasó.</span>
         <span><b>vs. mes anterior</b>: cuánto cambió la ocupación vendida contra el mes anterior, en <b>puntos</b>. Un punto es la diferencia entre dos porcentajes: si en agosto estaba en 38% y en setiembre en 52%, subió 14 puntos. Verde ▲ subió, rojo ▼ bajó. Abajo se ve el valor del mes anterior.</span>
       </div></details>
     </div>
@@ -250,11 +251,12 @@ td.cel:hover .celda{transform:scale(1.06);box-shadow:var(--shadow)}
       <p>Minutos al aire por mes contra la capacidad. El mes elegido arriba aparece resaltado; tocá otra barra para cambiar de mes.</p>
     </div>
     <div class="panel">
-      <div class="legend" style="margin-bottom:10px"><span><i style="background:var(--contr)"></i>Contratado</span><span><i style="background:var(--plus)"></i>Plus</span><span><i class="ln" style="background:var(--limite)"></i>Capacidad del mes</span><span><i class="ln" style="background:var(--warn)"></i>Ocupación vendida (%)</span></div>
+      <div class="legend" style="margin-bottom:10px"><span><i style="background:var(--contr)"></i>Contratado</span><span><i style="background:var(--plus)"></i>Plus</span><span class="leg-exc"><i style="background:var(--limite)"></i>Vendido de más</span><span><i class="ln" style="background:var(--limite)"></i>Capacidad del mes</span><span><i class="ln" style="background:var(--warn)"></i>Ocupación vendida (%)</span></div>
       <div class="lectura" id="lecMes" aria-live="polite"></div>
       <div class="chartbox"><canvas id="chMes" aria-label="Minutos por mes"></canvas></div>
       <details class="leer"><summary>¿Cómo se lee este gráfico?</summary><div>
-        <span>Cada barra es un mes completo: <b>azul</b> lo contratado y <b>verde</b> el Plus. La <b>línea roja</b> es la capacidad del mes, que cambia porque los meses tienen distinta cantidad de días.</span>
+        <span>Cada barra es un mes completo: <b>azul</b> lo contratado que entra, <b>verde</b> el Plus y <b>rojo</b> lo vendido de más, que no entra en la pantalla (solo cuando se ve un soporte; en la suma se avisa en la franja de arriba). La <b>línea roja</b> es la capacidad del mes, que cambia porque los meses tienen distinta cantidad de días.</span>
+        <span>El espacio entre la barra y la línea roja quedó libre aun con el Plus. Pasa porque el Plus tiene reglas: un mismo anunciante no puede salir dos veces en la misma programación, y los soportes sobrevendidos no reciben Plus.</span>
         <span>La <b>línea punteada</b> (eje derecho) es la ocupación vendida: contratado ÷ capacidad.</span>
         <span>Al pasar el mouse por un mes, sus números aparecen en la franja de arriba del gráfico, así no tapan las barras.</span>
         <span>Los meses que todavía no terminaron muestran lo que está cargado hoy; van a subir a medida que se vendan nuevas campañas.</span>
@@ -270,12 +272,13 @@ td.cel:hover .celda{transform:scale(1.06);box-shadow:var(--shadow)}
     <div class="focobar" id="focobar"></div>
     <div class="kpis" id="kpis"></div>
     <div class="panel">
-      <div class="legend" style="margin-bottom:10px"><span><i style="background:var(--contr)"></i>Contratado</span><span><i style="background:var(--plus)"></i>Plus</span><span><i class="ln" style="background:var(--limite)"></i>Capacidad del día</span><span><i class="ln" style="background:var(--warn)"></i>Ocupación real acumulada, con Plus (%)</span></div>
+      <div class="legend" style="margin-bottom:10px"><span><i style="background:var(--contr)"></i>Contratado</span><span><i style="background:var(--plus)"></i>Plus</span><span class="leg-exc"><i style="background:var(--limite)"></i>Vendido de más</span><span><i class="ln" style="background:var(--limite)"></i>Capacidad del día</span><span><i class="ln" style="background:var(--warn)"></i>Ocupación real acumulada, con Plus (%)</span></div>
       <div class="lectura" id="lecDia" aria-live="polite"></div>
       <div class="chartbox"><canvas id="chDia" aria-label="Minutos diarios de los soportes elegidos"></canvas></div>
       <details class="leer"><summary>¿Cómo se lee este gráfico?</summary><div>
-        <span>Cada barra es un día. <b>Azul</b>: minutos contratados ese día. <b>Verde</b>: minutos de Plus. La <b>línea roja</b> es el techo: todo lo que el soporte puede pasar ese día. El espacio entre la barra y la línea roja quedó libre.</span>
-        <span>La <b>línea punteada</b> (eje derecho, en %) es la ocupación real acumulada (contratado + Plus) desde el día 1 hasta ese día. El último día muestra la ocupación del mes entero.</span>
+        <span>Cada barra es un día. <b>Azul</b>: minutos contratados que entran ese día. <b>Verde</b>: minutos de Plus. <b>Rojo</b> (solo cuando se ve un soporte): minutos vendidos de más, que no entran; empieza justo en la línea roja. En la suma de varios soportes no se dibuja, y la franja de arriba avisa qué soporte está vendido de más. La <b>línea roja</b> es el techo: todo lo que el soporte puede pasar ese día. El espacio entre la barra y la línea roja quedó libre.</span>
+        <span>Azul + verde nunca pasan la línea roja. Lo que la pasa es rojo: sobreventa.</span>
+        <span>La <b>línea punteada</b> (escala de la derecha, en %) es la ocupación real acumulada (contratado + Plus) desde el día 1 hasta ese día. El último día muestra la ocupación del mes entero. Las dos escalas calzan: el 100% de la derecha cae justo en la línea roja.</span>
         <span>Al pasar el mouse por un día, la franja de arriba del gráfico muestra sus números: cuánto quedó libre y la ocupación de ese día. Sin mouse, muestra el total del mes.</span>
         <span>Las barras cambian de altura cuando empieza o termina una campaña.</span>
       </div></details>
@@ -413,8 +416,9 @@ const elegidos=()=>soportesMes().filter(s=>sel.has(s.nombre));
 // Lo que muestran las secciones 2 a 4: el soporte tocado en la tabla, o la suma de los elegidos en el filtro.
 const enfocados=()=>foco&&sel.has(foco)?soportesMes().filter(s=>s.nombre===foco):elegidos();
 function enfocar(n){ foco=(foco===n)?null:n; renderTabla(); renderDetalle(); }
-function tot(s){ const r={cap:0,contr:0,plus:0,pe:0,capPE:0,diasExc:0};
-  s.diario.forEach(d=>{ r.cap+=d.capTrad; r.contr+=d.contr; r.plus+=d.plus; r.pe+=d.peVend; r.capPE+=d.capPE; if(d.contr>d.capTrad+1) r.diasExc++; });
+// contr = lo vendido (puede pasar la capacidad); aire = lo vendido que entra; plus = el Plus que entra (ver plusVisible).
+function tot(s){ const r={cap:0,contr:0,plus:0,aire:0,pe:0,capPE:0,diasExc:0};
+  s.diario.forEach(d=>{ r.cap+=d.capTrad; r.contr+=d.contr; r.plus+=plusVisible(d); r.aire+=Math.min(d.contr,d.capTrad); r.pe+=d.peVend; r.capPE+=d.capPE; if(d.contr>d.capTrad+1) r.diasExc++; });
   return r; }
 function estado(o){ if(o>1.005) return '<span class="pill exc">Sobrevendido</span>'; if(o>=.85) return '<span class="pill alto">Casi lleno</span>'; return '<span class="pill ok">Con lugar</span>'; }
 function nombreSel(){ const n=sel.size; if(n===0) return 'ningún soporte elegido'; if(n===NOMBRES.length) return 'Todos los soportes';
@@ -473,13 +477,14 @@ function renderTabla(){
   const rows=elegidos().map(s=>({s,t:tot(s)})).sort((a,b)=>b.t.contr/b.t.cap-a.t.contr/a.t.cap);
   const tb=document.querySelector('#tblSop tbody'), tf=document.querySelector('#tblSop tfoot');
   if(!rows.length){ tb.innerHTML='<tr><td colspan="8" class="vacio">No hay soportes elegidos. Usá el filtro de arriba.</td></tr>'; tf.innerHTML=''; return; }
-  const maxEsc=Math.max(1.05,...rows.map(r=>Math.max((r.t.contr+r.t.plus)/r.t.cap, r.t.contr/r.t.cap)));
   const ant=mesAnterior(mes); document.getElementById('thDelta').textContent=ant?'vs. '+nomMesL(ant):'vs. mes anterior';
   const delta=(n,oc)=>{ if(!ant) return '<span class="delta eq">—</span>'; const s=n?sopDe(ant,n):null;
     const tA=n?tot(s):elegidos().map(x=>tot(sopDe(ant,x.nombre))).reduce((a,x)=>({cap:a.cap+x.cap,contr:a.contr+x.contr}),{cap:0,contr:0});
     return deltaHTML(oc, tA.cap?tA.contr/tA.cap:0, nomMesL(ant)); };
-  const barra=(t)=>{ const oc=t.contr/t.cap, W=v=>(v/maxEsc*100).toFixed(2)+'%', cW=Math.min(oc,1), xW=Math.max(0,oc-1);
-    return `<div class="bar" title="Contratado ${pct(oc)} · con Plus ${pct((t.contr+t.plus)/t.cap)}"><span class="c" style="left:0" data-w="${W(cW)}"></span>${xW>0?`<span class="x" style="left:${W(1)}" data-w="${W(xW)}"></span>`:''}${t.plus>0?`<span class="p" style="left:${W(oc)}" data-w="${W(t.plus/t.cap)}"></span>`:''}<span class="cap" style="left:${W(1)}"></span></div>`; };
+  // La barra entera es el 100% de la capacidad. Sobrevendido: barra roja completa y cuánto se pasó.
+  const barra=(t)=>{ const oc=t.contr/t.cap, W=v=>(Math.max(0,Math.min(v,1))*100).toFixed(2)+'%';
+    if(oc>1) return `<div class="bar" title="Contratado ${pct(oc)}: se vendió más de lo que entra"><span class="x" style="left:0" data-w="100%"></span><b class="sobra">+${pct(oc-1)} vendido de más</b></div>`;
+    return `<div class="bar" title="Contratado ${pct(oc)} · con Plus ${pct((t.contr+t.plus)/t.cap)}"><span class="c" style="left:0" data-w="${W(oc)}"></span>${t.plus>0?`<span class="p" style="left:${W(oc)}" data-w="${W(Math.min(t.plus/t.cap,1-oc))}"></span>`:''}</div>`; };
   tb.innerHTML=rows.map(({s,t})=>`<tr tabindex="0" data-n="${esc(s.nombre)}" class="${s.nombre===foco?'sel':''}" title="${s.nombre===foco?'Tocá de nuevo para volver a la suma':'Ver el detalle de este soporte'}"><td><span class="sopname">${esc(s.nombre)}</span><span class="soptipo">${esc(tipoDe(s))} · ${s.hsOn} h encendido</span></td>
       <td class="r num">${fmt(t.cap/60)}</td><td class="r num">${fmt(t.contr/60)}</td><td class="r num">${fmt(t.plus/60)}</td><td class="r num">${pct(t.contr/t.cap)}</td><td class="r">${delta(s.nombre,t.contr/t.cap)}</td><td>${barra(t)}</td><td>${estado(t.contr/t.cap)}</td></tr>`).join('');
   if(rows.length>1){ const T=rows.reduce((a,{t})=>({cap:a.cap+t.cap,contr:a.contr+t.contr,plus:a.plus+t.plus}),{cap:0,contr:0,plus:0});
@@ -493,12 +498,13 @@ function renderTabla(){
 // ───── Suma de los soportes elegidos
 function agregado(){
   const E=enfocados(), D=DATA[mes];
-  const diario=D.dias.map((_,i)=>E.reduce((a,s)=>{ const d=s.diario[i]; a.capTrad+=d.capTrad; a.contr+=d.contr; a.plus+=d.plus; return a; },{capTrad:0,contr:0,plus:0}));
+  // aire = lo contratado que entra en cada soporte; exc = lo vendido de más (no entra). Se calcula soporte por soporte.
+  const diario=D.dias.map((_,i)=>E.reduce((a,s)=>{ const d=s.diario[i]; a.capTrad+=d.capTrad; a.contr+=d.contr; a.plus+=plusVisible(d); a.aire+=Math.min(d.contr,d.capTrad); a.exc+=Math.max(0,d.contr-d.capTrad); return a; },{capTrad:0,contr:0,plus:0,aire:0,exc:0}));
   const camp=new Map();
   E.forEach(s=>s.campanias.forEach(c=>{ const k=claveAn(c.anun)+'|'+claveAn(c.camp)+'|'+c.dur; let x=camp.get(k);
     if(!x){ x={...c,sops:new Set(),contrSeg:0,plusSeg:0,dias:0,contrSalH:0,plusSalHMax:0}; camp.set(k,x); }
     x.sops.add(s.nombre); x.contrSeg+=c.contrSeg; x.plusSeg+=c.plusSeg; x.dias=Math.max(x.dias,c.dias); x.contrSalH=Math.max(x.contrSalH,c.contrSalH); x.plusSalHMax=Math.max(x.plusSalHMax,c.plusSalHMax); }));
-  const t=E.reduce((a,s)=>{ const x=tot(s); a.cap+=x.cap; a.contr+=x.contr; a.plus+=x.plus; a.pe+=x.pe; a.capPE+=x.capPE; if(x.contr>x.cap*1.005) a.sopExc++; a.diasExc=Math.max(a.diasExc,x.diasExc); return a; },{cap:0,contr:0,plus:0,pe:0,capPE:0,sopExc:0,diasExc:0});
+  const t=E.reduce((a,s)=>{ const x=tot(s); a.cap+=x.cap; a.contr+=x.contr; a.plus+=x.plus; a.aire+=x.aire; a.pe+=x.pe; a.capPE+=x.capPE; if(x.contr>x.cap*1.005) a.sopExc++; a.diasExc=Math.max(a.diasExc,x.diasExc); return a; },{cap:0,contr:0,plus:0,aire:0,pe:0,capPE:0,sopExc:0,diasExc:0});
   return {E,diario,t,campanias:[...camp.values()].sort((a,b)=>(b.contrSeg+b.plusSeg)-(a.contrSeg+a.plusSeg))};
 }
 
@@ -515,17 +521,28 @@ function chartDefaults(){ if(!window.Chart) throw new Error('sin-graficos'); Cha
 const aclarar=(hex,p)=>{ let h=hex.replace('#',''); if(h.length===3) h=h.split('').map(c=>c+c).join('');
   const n=parseInt(h,16), m=v=>Math.round(v+(255-v)*p/100); return `rgb(${m(n>>16&255)},${m(n>>8&255)},${m(n&255)})`; };
 
+// Las dos escalas tienen que calzar: el 100% de la derecha cae justo en la línea de capacidad.
+// capRef es la capacidad más alta del período; topeMin es lo más alto que tiene que entrar (en las mismas unidades).
+function escalasAlineadas(capRef,topeMin){
+  if(!capRef) return {y:{},y2:{}};
+  const pctMax=Math.max(120,Math.ceil(topeMin/capRef*100/20)*20+0);
+  // El tope de la izquierda no es un número redondo: se saca esa marca para que no aparezca un valor raro arriba.
+  const sinTopeRaro=ax=>{ const t=ax.ticks; if(t.length>2){ const paso=t[1].value-t[0].value, ult=t[t.length-1].value, ant=t[t.length-2].value; if(ult-ant<paso*.999) t.pop(); } };
+  return {y:{min:0,max:capRef*pctMax/100,afterBuildTicks:sinTopeRaro},y2:{min:0,max:pctMax,ticks:{stepSize:20,callback:v=>v+'%'}}};
+}
+
 // ───── 2 · Diario
 let AG=null;
 function dibujarDia(){
   if(!AG||!window.Chart) return; chartDefaults();
   const D=DATA[mes], A=AG; let acC=0,acCap=0;
-  const acum=A.diario.map(d=>{ acC+=d.contr+d.plus; acCap+=d.capTrad; return acCap?Math.round(acC/acCap*100):0; });
+  const acum=A.diario.map(d=>{ acC+=d.aire+d.plus; acCap+=d.capTrad; return acCap?Math.round(acC/acCap*1000)/10:0; });
   const ds=[
-    {type:'bar',label:'Contratado',data:A.diario.map(d=>+(d.contr/60).toFixed(1)),backgroundColor:css('--contr'),hoverBackgroundColor:css('--contr-h'),stack:'a',yAxisID:'y',order:2,borderRadius:2},
+    {type:'bar',label:'Contratado',data:A.diario.map(d=>+(d.aire/60).toFixed(1)),backgroundColor:css('--contr'),hoverBackgroundColor:css('--contr-h'),stack:'a',yAxisID:'y',order:2,borderRadius:2},
     {type:'bar',label:'Plus',data:A.diario.map(d=>+(d.plus/60).toFixed(1)),backgroundColor:css('--plus'),hoverBackgroundColor:css('--plus-hover'),stack:'a',yAxisID:'y',order:2,borderRadius:2},
     {type:'line',label:'Capacidad',data:A.diario.map(d=>+(d.capTrad/60).toFixed(1)),borderColor:css('--limite'),borderWidth:2,pointRadius:0,pointHoverRadius:4,pointHoverBackgroundColor:css('--limite'),stepped:'middle',yAxisID:'y',order:1},
     {type:'line',label:'Acumulado %',data:acum,borderColor:css('--warn'),borderDash:[5,4],borderWidth:2,pointRadius:0,pointHoverRadius:4,pointHoverBackgroundColor:css('--warn'),yAxisID:'y2',order:0},
+    {type:'bar',label:'Vendido de más',data:A.diario.map(d=>unSoloSoporte()?+(d.exc/60).toFixed(1):0),backgroundColor:css('--limite'),hoverBackgroundColor:css('--limite'),stack:'a',yAxisID:'y',order:2,borderRadius:2},
   ];
   const labels=D.dias.map(d=>+d.slice(8)), nomMes=(MESES[mes]||'').split(' ')[0].toLowerCase();
   const PASO=45, inicioLineas=labels.length*PASO+350, pasoLinea=35;
@@ -534,7 +551,10 @@ function dibujarDia(){
     x:{type:'number',easing:'linear',duration:pasoLinea,from:NaN,delay(ctx){ if(ctx.type!=='data'||ctx.xStarted||!intro.dia) return 0; ctx.xStarted=true; return inicioLineas+ctx.index*pasoLinea; }},
     y:{type:'number',easing:'linear',duration:pasoLinea,from:prevY,delay(ctx){ if(ctx.type!=='data'||ctx.yStarted||!intro.dia) return 0; ctx.yStarted=true; return inicioLineas+ctx.index*pasoLinea; }}};
   ds[2].animations=trazo(); ds[3].animations=trazo();
-  if(charts.dia){ charts.dia.data.labels=labels; charts.dia.data.datasets.forEach((d,i)=>{ d.data=ds[i].data; }); charts.dia.update(); lecturaDia(null); return; }
+  const capRefD=Math.max(0,...ds[2].data), escD=escalasAlineadas(capRefD,Math.max(0,...A.diario.map(d=>(d.aire+(unSoloSoporte()?d.exc:0)+d.plus)/60),...ds[2].data));
+  mostrarLeyendaExc();
+  if(charts.dia){ charts.dia.data.labels=labels; charts.dia.data.datasets.forEach((d,i)=>{ d.data=ds[i].data; });
+    Object.assign(charts.dia.options.scales.y,escD.y); Object.assign(charts.dia.options.scales.y2,escD.y2); charts.dia.update(); lecturaDia(null); return; }
   charts.dia=new Chart(document.getElementById('chDia'),{
     data:{labels,datasets:ds},
     options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
@@ -543,8 +563,8 @@ function dibujarDia(){
         onComplete:()=>{ intro.dia=false; }},
       plugins:{legend:{display:false},tooltip:{enabled:false}},
       scales:{x:{stacked:true,grid:{display:false},ticks:{maxRotation:0,autoSkipPadding:8}},
-        y:{stacked:true,beginAtZero:true,title:{display:innerWidth>=600,text:'minutos por día'},grid:{color:css('--line')}},
-        y2:{position:'right',beginAtZero:true,suggestedMax:120,grid:{display:false},ticks:{callback:v=>v+'%'}}}}
+        y:{stacked:true,beginAtZero:true,title:{display:innerWidth>=600,text:'minutos por día'},grid:{color:css('--line')},...escD.y},
+        y2:{position:'right',grid:{display:false},...escD.y2}}}
   });
   enlazarLectura(charts.dia,lecturaDia);
 }
@@ -580,13 +600,13 @@ function renderDetalle(){
   const bs=document.getElementById('btnSuma'); if(bs) bs.onclick=()=>enfocar(foco);
   ['t2','t3','t4'].forEach((id,i)=>{ document.getElementById(id).textContent=['Evolución de la ocupación','Anunciantes y minutos exhibidos','Vendido contra exhibido'][i]+' · '+titulo; });
   const s1=n===1?A.E[0]:null, ant=mesAnterior(mes);
-  const tA=ant?A.E.map(s=>tot(sopDe(ant,s.nombre))).reduce((a,x)=>({cap:a.cap+x.cap,contr:a.contr+x.contr,plus:a.plus+x.plus}),{cap:0,contr:0,plus:0}):null;
+  const tA=ant?A.E.map(s=>tot(sopDe(ant,s.nombre))).reduce((a,x)=>({cap:a.cap+x.cap,contr:a.contr+x.contr,plus:a.plus+x.plus,aire:a.aire+x.aire}),{cap:0,contr:0,plus:0,aire:0}):null;
   const vsAnt=(act,prev)=>tA&&tA.cap?'<br>'+deltaHTML(act,prev,nomMesL(ant),'kpi'):'';
   document.getElementById('kpis').innerHTML=n?[
     ['Capacidad del mes',fmt(t.cap/60)+' min',s1?`${s1.bloques} bloques · ${s1.progsXHora} prog/h · ${s1.hsOn} h`:`${n} soportes sumados`],
     ['Contratado',fmt(t.contr/60)+' min','Ocupación vendida '+pct(t.contr/t.cap)+vsAnt(t.contr/t.cap,tA&&tA.contr/tA.cap)],
     ['Plus entregado',fmt(t.plus/60)+' min',t.contr>0?'+'+pct(t.plus/t.contr)+' sobre lo contratado':'—'],
-    ['Exhibido total',fmt((t.contr+t.plus)/60)+' min','Ocupación real '+pct((t.contr+t.plus)/t.cap)+vsAnt((t.contr+t.plus)/t.cap,tA&&(tA.contr+tA.plus)/tA.cap)],
+    ['Exhibido total',fmt((t.aire+t.plus)/60)+' min','Ocupación real '+pct((t.aire+t.plus)/t.cap)+(t.contr>t.aire+1?`<br><span style="color:var(--limite)">${fmt((t.contr-t.aire)/60)} min vendidos de más no entran</span>`:'')+vsAnt((t.aire+t.plus)/t.cap,tA&&(tA.aire+tA.plus)/tA.cap)],
     s1?['Días sobrevendidos',String(t.diasExc),'de '+D.dias.length+' días del mes']:['Soportes sobrevendidos',String(t.sopExc),'de '+n+' elegidos'],
   ].map(([l,v,sub])=>`<div class="kpi"><span class="eyebrow">${l}</span><span class="v">${v}</span><span class="s">${sub}</span></div>`).join(''):'';
 
@@ -650,13 +670,14 @@ function enlazarLectura(chart,pintar){
 function lecturaDia(i){
   const el=document.getElementById('lecDia'); if(!el||!AG) return;
   const D=DATA[mes], nm=nomMesL(mes);
-  if(i==null){ const t=AG.diario.reduce((a,d)=>({cap:a.cap+d.capTrad,c:a.c+d.contr,p:a.p+d.plus}),{cap:0,c:0,p:0});
+  const exc=x=>x>0&&unSoloSoporte()?`<span>${punto('--limite')}Vendido de más <span class="v">${fmt(x/60)}</span> min</span>`:'';
+  if(i==null){ const t=AG.diario.reduce((a,d)=>({cap:a.cap+d.capTrad,c:a.c+d.aire,x:a.x+d.exc,p:a.p+d.plus}),{cap:0,c:0,x:0,p:0});
     el.classList.remove('activa');
-    el.innerHTML=`<span class="t">Todo ${nm}</span><span>${punto('--contr')}Contratado <span class="v">${fmt(t.c/60)}</span> min</span><span>${punto('--plus')}Plus <span class="v">${fmt(t.p/60)}</span> min</span><span>${punto('--limite')}Capacidad <span class="v">${fmt(t.cap/60)}</span> min</span><span>Ocupación real <span class="v">${pct((t.c+t.p)/t.cap)}</span></span><span class="ayuda">Pasá el mouse por un día para ver el detalle.</span>`; return; }
-  const d=AG.diario[i], al=d.contr+d.plus, lib=d.capTrad-al;
-  let acC=0,acCap=0; for(let k=0;k<=i;k++){ acC+=AG.diario[k].contr+AG.diario[k].plus; acCap+=AG.diario[k].capTrad; }
+    el.innerHTML=`<span class="t">Todo ${nm}</span><span>${punto('--contr')}Contratado <span class="v">${fmt(t.c/60)}</span> min</span><span>${punto('--plus')}Plus <span class="v">${fmt(t.p/60)}</span> min</span>${exc(t.x)}<span>Capacidad <span class="v">${fmt(t.cap/60)}</span> min</span><span>Al aire <span class="v">${pct((t.c+t.p)/t.cap)}</span></span><span>Libre <span class="v">${fmt((t.cap-t.c-t.p)/60)}</span> min</span>${avisoExc()}<span class="ayuda">Pasá el mouse por un día para ver el detalle.</span>`; return; }
+  const d=AG.diario[i], al=d.aire+d.plus, lib=d.capTrad-al;
+  let acC=0,acCap=0; for(let k=0;k<=i;k++){ acC+=AG.diario[k].aire+AG.diario[k].plus; acCap+=AG.diario[k].capTrad; }
   el.classList.add('activa');
-  el.innerHTML=`<span class="t">${+D.dias[i].slice(8)} de ${nm}</span><span>${punto('--contr')}Contratado <span class="v">${fmt(d.contr/60)}</span> min</span><span>${punto('--plus')}Plus <span class="v">${fmt(d.plus/60)}</span> min</span><span>${punto('--limite')}Capacidad <span class="v">${fmt(d.capTrad/60)}</span> min</span><span>Al aire <span class="v">${pct(al/d.capTrad)}</span> del día</span><span>${lib>=0?`Libre <span class="v">${fmt(lib/60)}</span> min`:`Vendido de más <span class="v">${fmt(-lib/60)}</span> min`}</span><span>${punto('--warn')}Acumulado real del mes <span class="v">${acCap?pct(acC/acCap):'—'}</span></span>`;
+  el.innerHTML=`<span class="t">${+D.dias[i].slice(8)} de ${nm}</span><span>${punto('--contr')}Contratado <span class="v">${fmt(d.aire/60)}</span> min</span><span>${punto('--plus')}Plus <span class="v">${fmt(d.plus/60)}</span> min</span>${exc(d.exc)}<span>Capacidad <span class="v">${fmt(d.capTrad/60)}</span> min</span><span>Al aire <span class="v">${pct(al/d.capTrad)}</span> del día</span><span>Libre <span class="v">${fmt(lib/60)}</span> min</span><span>${punto('--warn')}Acumulado del mes <span class="v">${acCap?pct(acC/acCap):'—'}</span></span>`;
 }
 let SERIE_MES=[];
 function lecturaMes(i){
@@ -664,36 +685,50 @@ function lecturaMes(i){
   const sel_=i==null; if(i==null) i=LISTA_MESES.indexOf(mes);
   const x=SERIE_MES[i], m=x.m, est=m>MES_HOY?' · cargado hasta hoy':m===MES_HOY?' · en curso':'';
   el.classList.toggle('activa',!sel_);
-  el.innerHTML=`<span class="t">${MESES[m]}<span style="font-weight:400;color:var(--muted);font-size:12px">${est}</span></span><span>${punto('--contr')}Contratado <span class="v">${fmt(x.contr/60)}</span> min</span><span>${punto('--plus')}Plus <span class="v">${fmt(x.plus/60)}</span> min</span><span>${punto('--limite')}Capacidad <span class="v">${fmt(x.cap/60)}</span> min</span><span>${punto('--warn')}Vendida <span class="v">${x.cap?pct(x.contr/x.cap):'—'}</span></span><span>Real con Plus <span class="v">${x.cap?pct((x.contr+x.plus)/x.cap):'—'}</span></span>${sel_?'<span class="ayuda">Pasá el mouse por otro mes para compararlo.</span>':''}`;
+  el.innerHTML=`<span class="t">${MESES[m]}<span style="font-weight:400;color:var(--muted);font-size:12px">${est}</span></span><span>${punto('--contr')}Contratado <span class="v">${fmt(x.aire/60)}</span> min</span><span>${punto('--plus')}Plus <span class="v">${fmt(x.plus/60)}</span> min</span>${x.exc>0&&unSoloSoporte()?`<span>${punto('--limite')}Vendido de más <span class="v">${fmt(x.exc/60)}</span> min</span>`:''}<span>Capacidad <span class="v">${fmt(x.cap/60)}</span> min</span><span>Libre <span class="v">${fmt((x.cap-x.aire-x.plus)/60)}</span> min</span><span>${punto('--warn')}Vendida <span class="v">${x.cap?pct(x.contr/x.cap):'—'}</span></span><span>Al aire con Plus <span class="v">${x.cap?pct((x.aire+x.plus)/x.cap):'—'}</span></span>${m===mes?avisoExc():''}${sel_?'<span class="ayuda">Pasá el mouse por otro mes para compararlo.</span>':''}`;
 }
 
 // ───── 2 · Mes a mes
+// El motor a veces da unos segundos más de Plus que la capacidad (cuando el espacio de programática quedó vacío,
+// la pauta lo usa). En los gráficos se recorta para que contratado + Plus nunca pase la línea de capacidad.
+const plusVisible=d=>Math.max(0,Math.min(d.plus,d.capTrad-Math.min(d.contr,d.capTrad)));
+// Lo vendido de más solo se dibuja cuando se ve UN soporte: ahí empieza justo en la línea de capacidad.
+// En una suma quedaría apilado sobre el lugar libre de otros soportes y parecería que entra; se avisa en texto.
+const unSoloSoporte=()=>AG&&AG.E.length===1;
+function avisoExc(){ if(unSoloSoporte()) return '';
+  const sv=AG.E.map(s=>({n:s.nombre,x:tot(s)})).filter(o=>o.x.contr>o.x.aire+60);
+  return sv.length?`<span style="color:var(--limite)">${sv.map(o=>`${esc(o.n)}: ${fmt((o.x.contr-o.x.aire)/60)} min vendidos de más que no entran`).join(' · ')}. Tocalo en la tabla 1 para verlo solo.</span>`:''; }
+function mostrarLeyendaExc(){ document.querySelectorAll('.leg-exc').forEach(e=>e.hidden=!unSoloSoporte()); }
 function serieMensual(nombres,filtroCamp){
-  return LISTA_MESES.map(m=>{ let cap=0,contr=0,plus=0;
+  return LISTA_MESES.map(m=>{ let cap=0,contr=0,plus=0,aire=0,exc=0;
     nombres.forEach(n=>{ const s=sopDe(m,n); if(!s) return;
       if(filtroCamp){ s.campanias.filter(filtroCamp).forEach(c=>{ contr+=c.contrSeg; plus+=c.plusSeg; }); }
-      else s.diario.forEach(d=>{ cap+=d.capTrad; contr+=d.contr; plus+=d.plus; }); });
-    return {m,cap,contr,plus}; });
+      else s.diario.forEach(d=>{ cap+=d.capTrad; contr+=d.contr; plus+=plusVisible(d); aire+=Math.min(d.contr,d.capTrad); exc+=Math.max(0,d.contr-d.capTrad); }); });
+    if(filtroCamp) aire=contr;
+    return {m,cap,contr,plus,aire,exc}; });
 }
 function dibujarMes(){
   if(!AG||!window.Chart) return; chartDefaults();
   const S=serieMensual(AG.E.map(s=>s.nombre)), iSel=LISTA_MESES.indexOf(mes); SERIE_MES=S;
   const col=(v,i)=>i===iSel?css(v):aclarar(css(v),(i>LISTA_MESES.indexOf(MES_HOY)?62:45)+(v==='--plus'?10:0));
-  const labels=S.map(x=>corto(x.m)), dc=S.map(x=>Math.round(x.contr/60)), dp=S.map(x=>Math.round(x.plus/60)), dcap=S.map(x=>Math.round(x.cap/60)), docu=S.map(x=>x.cap?Math.round(x.contr/x.cap*100):0);
-  const bgC=S.map((_,i)=>col('--contr',i)), bgP=S.map((_,i)=>col('--plus',i));
-  if(charts.mes){ const d=charts.mes.data; d.labels=labels; d.datasets[0].data=dc; d.datasets[0].backgroundColor=bgC; d.datasets[1].data=dp; d.datasets[1].backgroundColor=bgP; d.datasets[2].data=dcap; d.datasets[3].data=docu; charts.mes.update(); lecturaMes(null); return; }
+  const labels=S.map(x=>corto(x.m)), dc=S.map(x=>Math.round(x.aire/60)), dx=S.map(x=>unSoloSoporte()?Math.round(x.exc/60):0), dp=S.map(x=>Math.round(x.plus/60)), dcap=S.map(x=>Math.round(x.cap/60)), docu=S.map(x=>x.cap?Math.round(x.contr/x.cap*100):0);
+  const bgC=S.map((_,i)=>col('--contr',i)), bgP=S.map((_,i)=>col('--plus',i)), bgX=S.map((_,i)=>col('--limite',i));
+  const escM=escalasAlineadas(Math.max(0,...dcap),Math.max(0,...S.map((x,i)=>x.aire/60+dx[i]+x.plus/60),...dcap)); mostrarLeyendaExc();
+  if(charts.mes){ const d=charts.mes.data; d.labels=labels; d.datasets[0].data=dc; d.datasets[0].backgroundColor=bgC; d.datasets[1].data=dp; d.datasets[1].backgroundColor=bgP; d.datasets[2].data=dcap; d.datasets[3].data=docu; d.datasets[4].data=dx; d.datasets[4].backgroundColor=bgX;
+    Object.assign(charts.mes.options.scales.y,escM.y); Object.assign(charts.mes.options.scales.y2,escM.y2); charts.mes.update(); lecturaMes(null); return; }
   charts.mes=new Chart(document.getElementById('chMes'),{
     data:{labels,datasets:[
       {type:'bar',label:'Contratado',data:dc,backgroundColor:bgC,hoverBackgroundColor:css('--contr-h'),stack:'a',yAxisID:'y',order:2,borderRadius:3},
       {type:'bar',label:'Plus',data:dp,backgroundColor:bgP,hoverBackgroundColor:css('--plus-hover'),stack:'a',yAxisID:'y',order:2,borderRadius:3},
       {type:'line',label:'Capacidad',data:dcap,borderColor:css('--limite'),borderWidth:2,pointRadius:3,pointBackgroundColor:css('--limite'),yAxisID:'y',order:1},
-      {type:'line',label:'Ocupación vendida',data:docu,borderColor:css('--warn'),borderDash:[5,4],borderWidth:2,pointRadius:3,pointBackgroundColor:css('--warn'),yAxisID:'y2',order:0}]},
+      {type:'line',label:'Ocupación vendida',data:docu,borderColor:css('--warn'),borderDash:[5,4],borderWidth:2,pointRadius:3,pointBackgroundColor:css('--warn'),yAxisID:'y2',order:0},
+      {type:'bar',label:'Vendido de más',data:dx,backgroundColor:bgX,hoverBackgroundColor:css('--limite'),stack:'a',yAxisID:'y',order:2,borderRadius:3}]},
     options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},animation:cascada('mes',110),
       onClick:(e,els)=>{ if(!els.length) return; mes=LISTA_MESES[els[0].index]; document.getElementById('selMes').value=mes; renderTodo(); },
       onHover:(e,els)=>{ e.native.target.style.cursor=els.length?'pointer':'default'; },
       plugins:{legend:{display:false},tooltip:{enabled:false}},
-      scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,beginAtZero:true,title:{display:innerWidth>=600,text:'minutos por mes'},grid:{color:css('--line')}},
-        y2:{position:'right',beginAtZero:true,suggestedMax:120,grid:{display:false},ticks:{callback:v=>v+'%'}}}}});
+      scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,beginAtZero:true,title:{display:innerWidth>=600,text:'minutos por mes'},grid:{color:css('--line')},...escM.y},
+        y2:{position:'right',grid:{display:false},...escM.y2}}}});
   enlazarLectura(charts.mes,lecturaMes);
 }
 
