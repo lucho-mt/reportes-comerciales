@@ -130,6 +130,21 @@ tbody tr.sel{background:color-mix(in srgb,var(--contr) 9%,var(--surface))}
 .delta-up{color:var(--limite)} .delta-dn{color:var(--ok)}
 .nota{font-size:12.5px;color:var(--muted);margin-top:10px}
 .vacio{padding:30px;text-align:center;color:var(--muted)}
+/* Salido en OnSign */
+.soltar{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:28px 16px;border:2px dashed var(--line);border-radius:10px;cursor:pointer;color:var(--muted);transition:border-color .15s,background .15s}
+.soltar b{color:var(--ink);font-size:15px}
+.soltar:hover,.soltar.encima{border-color:var(--contr);background:color-mix(in srgb,var(--contr) 5%,var(--surface))}
+.soltar input{display:none}
+.ons-pasos[hidden]{display:none}
+.ons-pasos{margin:14px 0 0;padding-left:20px;font-size:13.5px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.ons-pasos b{color:var(--ink)}
+.est{display:inline-block;font-size:12px;font-weight:600;border-radius:99px;padding:2px 9px;white-space:nowrap}
+.est-ok{background:color-mix(in srgb,var(--plus) 45%,var(--surface));color:var(--ink)}
+.est-menos{background:color-mix(in srgb,var(--warn) 25%,var(--surface));color:var(--ink)}
+.est-no{background:color-mix(in srgb,var(--limite) 22%,var(--surface));color:var(--ink)}
+.est-extra{background:var(--chip);color:var(--ink);border:1px solid var(--line)}
+.ons-extra{margin-top:14px;font-size:13.5px}
+.ons-extra ul{margin:6px 0 0;padding-left:20px;color:var(--muted)}
 footer{margin-top:48px;color:var(--muted);font-size:12.5px;border-top:1px solid var(--line);padding-top:16px}
 /* lectura de gráfico: reemplaza al cuadro flotante, así no tapa nada */
 .lectura{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 18px;min-height:46px;padding:9px 12px;border-radius:8px;background:var(--chip);margin-bottom:12px;font-size:13px;color:var(--muted);transition:background .2s}
@@ -218,6 +233,7 @@ td.cel:hover .celda{transform:scale(1.06);box-shadow:var(--shadow)}
     <button type="button" data-v="sop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>Soportes</button>
     <button type="button" data-v="anun"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Anunciantes</button>
     <button type="button" data-v="disp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Disponible</button>
+    <button type="button" data-v="ons"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12l5 5L20 6"/></svg>Salido en OnSign</button>
   </nav>
   <div class="side-label">En esta vista</div>
   <nav class="side-sec" id="sideSec"></nav>
@@ -400,6 +416,44 @@ td.cel:hover .celda{transform:scale(1.06);box-shadow:var(--shadow)}
         <span>Al pasar el mouse ves cuántas salidas por hora de 10 segundos entrarían en ese espacio libre, que es la forma en que se vende.</span>
         <span>Octubre cuenta solo desde hoy hasta fin de mes. Los meses que vienen van a ir llenándose a medida que se carguen órdenes.</span>
       </div></details>
+    </div>
+  </section>
+  </div>
+
+  <div class="vista" id="vOns" hidden>
+  <section id="sO1">
+    <div class="sec-head">
+      <div><div class="eyebrow">Control</div><h2>Lo vendido contra lo que salió en OnSign</h2></div>
+      <p>Arrastrá un informe bajado de OnSign y el sitio lo compara con la planilla. El archivo se lee solo en esta compu: no se sube ni se guarda en ningún lado.</p>
+    </div>
+    <div class="panel">
+      <label class="soltar" id="onsSoltar"><b id="onsTitulo">Arrastrá acá el informe de OnSign</b><span id="onsSub">o tocá para elegirlo (archivo .html o .csv)</span><input type="file" id="onsArchivo" accept=".csv,.html,text/csv,text/html"></label>
+      <ol class="ons-pasos" id="onsPasos">
+        <li>En OnSign: <b>Informes → Nuevo Informe → Reproducción → "Resumen Diario de Reproducción por Player"</b>, con todas las pantallas y los días que quieras ver.</li>
+        <li>Cuando esté listo, descargalo (sirve en HTML o en CSV). Si baja en un .zip, abrilo con doble clic y arrastrá el archivo que tiene adentro.</li>
+        <li>OnSign guarda solo los últimos 60 días.</li>
+      </ol>
+      <div id="onsCtl" hidden style="margin-top:16px">
+        <div class="toolbar"><label class="ctl" for="onsDia">Día<select id="onsDia"></select></label><span class="nota" style="margin:0">Tocá un soporte para ver sus anunciantes abajo.</span></div>
+        <div class="kpis" id="onsKpis"></div>
+        <div class="tbl-scroll"><table id="tblOns"><thead><tr><th>Soporte</th><th class="r">Pantallas</th><th class="r">Anunciantes vendidos</th><th class="r">Salen bien</th><th class="r">Salen menos</th><th class="r">No salen</th><th class="r">Salen sin estar vendidos</th></tr></thead><tbody></tbody></table></div>
+        <details class="leer"><summary>¿Cómo se lee esta tabla?</summary><div>
+          <span><b>Vendidas por día</b> = salidas por hora de la planilla × las horas que calcula la app para ese soporte. Ejemplo: 6 por hora en MAS BUS (14 h) son 84 por día.</span>
+          <span><b>Salidas en OnSign</b> = las veces que salieron las piezas de ese anunciante ese día, en promedio por pantalla del soporte. Se suman todas las piezas del anunciante.</span>
+          <span><b>Salen bien</b>: llegan al 80% de lo vendido o más (lo que pasa de 100% suele ser Plus o pantallas prendidas más horas). <b>Salen menos</b>: menos del 80%. <b>No salen</b>: ninguna vez ese día.</span>
+          <span>Las piezas se reconocen por el nombre del anunciante dentro del nombre de la pieza: lo que va después de "_P_", o después de "-X-" en los nombres nuevos ("…-PT-X-ANUNCIANTE-Y-CAMPAÑA-…"). Las piezas sin código (ej. "tigo_uy_…") cuentan solo si llevan el nombre de un anunciante vendido. Si un anunciante figura distinto en la planilla y en OnSign, puede aparecer como "no sale" y a la vez como "sin estar vendido".</span>
+        </div></details>
+      </div>
+    </div>
+  </section>
+  <section id="sO2">
+    <div class="sec-head">
+      <div><div class="eyebrow">Detalle</div><h2 id="onsDetTit">Anunciantes del soporte</h2></div>
+      <p id="onsDetSub">Elegí un soporte en la tabla de arriba.</p>
+    </div>
+    <div class="panel">
+      <div class="tbl-scroll"><table id="tblOnsDet"><thead><tr><th>Anunciante</th><th class="r">Vendidas por día</th><th class="r">Salidas en OnSign</th><th class="r">Cumplido</th><th>Estado</th></tr></thead><tbody><tr><td colspan="5" class="vacio">Todavía no cargaste un informe.</td></tr></tbody></table></div>
+      <div class="ons-extra" id="onsExtra"></div>
     </div>
   </section>
   </div>

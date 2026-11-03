@@ -75,7 +75,8 @@ async function rcCargarTodo(avance) {
   avance('Leyendo la planilla de Tráfico de Pautas…', 0, 1);
   const ordenes = await rcLeerPlanilla();
   const meses = rcMesesACalcular(hoy);
-  const resultado = { meses: {}, cantidadOrdenes: ordenes.length, leido: hoy };
+  // ordenes: la vista "Salido en OnSign" compara lo vendido día por día.
+  const resultado = { meses: {}, cantidadOrdenes: ordenes.length, leido: hoy, ordenes };
   await new Promise((ok, mal) => {
     const w = new Worker('js/calculo-worker.js');
     const corte = setTimeout(() => { w.terminate(); mal(new Error('El cálculo tardó demasiado.')); }, 180000);

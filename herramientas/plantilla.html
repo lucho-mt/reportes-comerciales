@@ -121,6 +121,21 @@ tbody tr.sel{background:color-mix(in srgb,var(--contr) 9%,var(--surface))}
 .delta-up{color:var(--limite)} .delta-dn{color:var(--ok)}
 .nota{font-size:12.5px;color:var(--muted);margin-top:10px}
 .vacio{padding:30px;text-align:center;color:var(--muted)}
+/* Salido en OnSign */
+.soltar{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding:28px 16px;border:2px dashed var(--line);border-radius:10px;cursor:pointer;color:var(--muted);transition:border-color .15s,background .15s}
+.soltar b{color:var(--ink);font-size:15px}
+.soltar:hover,.soltar.encima{border-color:var(--contr);background:color-mix(in srgb,var(--contr) 5%,var(--surface))}
+.soltar input{display:none}
+.ons-pasos[hidden]{display:none}
+.ons-pasos{margin:14px 0 0;padding-left:20px;font-size:13.5px;color:var(--muted);display:flex;flex-direction:column;gap:4px}
+.ons-pasos b{color:var(--ink)}
+.est{display:inline-block;font-size:12px;font-weight:600;border-radius:99px;padding:2px 9px;white-space:nowrap}
+.est-ok{background:color-mix(in srgb,var(--plus) 45%,var(--surface));color:var(--ink)}
+.est-menos{background:color-mix(in srgb,var(--warn) 25%,var(--surface));color:var(--ink)}
+.est-no{background:color-mix(in srgb,var(--limite) 22%,var(--surface));color:var(--ink)}
+.est-extra{background:var(--chip);color:var(--ink);border:1px solid var(--line)}
+.ons-extra{margin-top:14px;font-size:13.5px}
+.ons-extra ul{margin:6px 0 0;padding-left:20px;color:var(--muted)}
 footer{margin-top:48px;color:var(--muted);font-size:12.5px;border-top:1px solid var(--line);padding-top:16px}
 /* lectura de gráfico: reemplaza al cuadro flotante, así no tapa nada */
 .lectura{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 18px;min-height:46px;padding:9px 12px;border-radius:8px;background:var(--chip);margin-bottom:12px;font-size:13px;color:var(--muted);transition:background .2s}
@@ -198,6 +213,7 @@ td.cel:hover .celda{transform:scale(1.06);box-shadow:var(--shadow)}
     <button type="button" data-v="sop"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>Soportes</button>
     <button type="button" data-v="anun"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>Anunciantes</button>
     <button type="button" data-v="disp"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Disponible</button>
+    <button type="button" data-v="ons"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 12l5 5L20 6"/></svg>Salido en OnSign</button>
   </nav>
   <div class="side-label">En esta vista</div>
   <nav class="side-sec" id="sideSec"></nav>
@@ -379,6 +395,44 @@ td.cel:hover .celda{transform:scale(1.06);box-shadow:var(--shadow)}
   </section>
   </div>
 
+  <div class="vista" id="vOns" hidden>
+  <section id="sO1">
+    <div class="sec-head">
+      <div><div class="eyebrow">Control</div><h2>Lo vendido contra lo que salió en OnSign</h2></div>
+      <p>Arrastrá un informe bajado de OnSign y el sitio lo compara con la planilla. El archivo se lee solo en esta compu: no se sube ni se guarda en ningún lado.</p>
+    </div>
+    <div class="panel">
+      <label class="soltar" id="onsSoltar"><b id="onsTitulo">Arrastrá acá el informe de OnSign</b><span id="onsSub">o tocá para elegirlo (archivo .html o .csv)</span><input type="file" id="onsArchivo" accept=".csv,.html,text/csv,text/html"></label>
+      <ol class="ons-pasos" id="onsPasos">
+        <li>En OnSign: <b>Informes → Nuevo Informe → Reproducción → "Resumen Diario de Reproducción por Player"</b>, con todas las pantallas y los días que quieras ver.</li>
+        <li>Cuando esté listo, descargalo (sirve en HTML o en CSV). Si baja en un .zip, abrilo con doble clic y arrastrá el archivo que tiene adentro.</li>
+        <li>OnSign guarda solo los últimos 60 días.</li>
+      </ol>
+      <div id="onsCtl" hidden style="margin-top:16px">
+        <div class="toolbar"><label class="ctl" for="onsDia">Día<select id="onsDia"></select></label><span class="nota" style="margin:0">Tocá un soporte para ver sus anunciantes abajo.</span></div>
+        <div class="kpis" id="onsKpis"></div>
+        <div class="tbl-scroll"><table id="tblOns"><thead><tr><th>Soporte</th><th class="r">Pantallas</th><th class="r">Anunciantes vendidos</th><th class="r">Salen bien</th><th class="r">Salen menos</th><th class="r">No salen</th><th class="r">Salen sin estar vendidos</th></tr></thead><tbody></tbody></table></div>
+        <details class="leer"><summary>¿Cómo se lee esta tabla?</summary><div>
+          <span><b>Vendidas por día</b> = salidas por hora de la planilla × las horas que calcula la app para ese soporte. Ejemplo: 6 por hora en MAS BUS (14 h) son 84 por día.</span>
+          <span><b>Salidas en OnSign</b> = las veces que salieron las piezas de ese anunciante ese día, en promedio por pantalla del soporte. Se suman todas las piezas del anunciante.</span>
+          <span><b>Salen bien</b>: llegan al 80% de lo vendido o más (lo que pasa de 100% suele ser Plus o pantallas prendidas más horas). <b>Salen menos</b>: menos del 80%. <b>No salen</b>: ninguna vez ese día.</span>
+          <span>Las piezas se reconocen por el nombre del anunciante dentro del nombre de la pieza: lo que va después de "_P_", o después de "-X-" en los nombres nuevos ("…-PT-X-ANUNCIANTE-Y-CAMPAÑA-…"). Las piezas sin código (ej. "tigo_uy_…") cuentan solo si llevan el nombre de un anunciante vendido. Si un anunciante figura distinto en la planilla y en OnSign, puede aparecer como "no sale" y a la vez como "sin estar vendido".</span>
+        </div></details>
+      </div>
+    </div>
+  </section>
+  <section id="sO2">
+    <div class="sec-head">
+      <div><div class="eyebrow">Detalle</div><h2 id="onsDetTit">Anunciantes del soporte</h2></div>
+      <p id="onsDetSub">Elegí un soporte en la tabla de arriba.</p>
+    </div>
+    <div class="panel">
+      <div class="tbl-scroll"><table id="tblOnsDet"><thead><tr><th>Anunciante</th><th class="r">Vendidas por día</th><th class="r">Salidas en OnSign</th><th class="r">Cumplido</th><th>Estado</th></tr></thead><tbody><tr><td colspan="5" class="vacio">Todavía no cargaste un informe.</td></tr></tbody></table></div>
+      <div class="ons-extra" id="onsExtra"></div>
+    </div>
+  </section>
+  </div>
+
   <footer>Fuente: planilla de Tráfico de Pautas (lectura del endpoint <span class="num">?accion=listar</span>). Cálculo hecho con el motor de la app de tráfico, verificado contra la app. Boceto · <span id="fechaFoto2"></span>.</footer>
 </main>
 </div></div>
@@ -398,7 +452,7 @@ const sopDe=(m,n)=>DATA[m].soportes.find(s=>s.nombre===n);
 // Normaliza el nombre del anunciante para juntar grafías distintas (MCDONALDS / McDonald's, SC Jhonson / Sc Jhonson).
 const claveAn=s=>String(s||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().replace(/[^a-z0-9]/g,'');
 let vista='sop', anunSel=null, anunPedido=null, verTodasAn=false, buscaAn='';
-try{ const h=location.hash.slice(1); if(['sop','anun','disp'].includes(h)) vista=h; }catch(e){}
+try{ const h=location.hash.slice(1); if(['sop','anun','disp','ons'].includes(h)) vista=h; }catch(e){}
 const GRUPOS=['Outdoor','WTC Ascensores','WTC Verticales','Circuito Deportivo','Gran Formato deportivo','Gran formato 60 min'];
 const tipoDe=s=>s.tipo==='Deportivo'?'Gran Formato deportivo':s.tipo;
 const fmt=n=>Math.round(n).toLocaleString('es-UY');
@@ -878,8 +932,8 @@ function ocultarTip(){ tipEl.hidden=true; }
 
 // ───── Menú lateral: vistas y secciones de la vista abierta (se marca la que estás leyendo)
 const SECCIONES={sop:[['s1','Ventas por soporte'],['sMes','Mes a mes'],['s2','Desglose diario'],['s3','Contenidos'],['s4','Plus'],['s5','Simulador']],
-  anun:[['sA1','Ranking'],['sA2','Reporte del anunciante']], disp:[['sD','Disponible para vender']]};
-const TITULOS={sop:'Soportes',anun:'Anunciantes',disp:'Disponible para vender'};
+  anun:[['sA1','Ranking'],['sA2','Reporte del anunciante']], disp:[['sD','Disponible para vender']], ons:[['sO1','Por soporte'],['sO2','Por anunciante']]};
+const TITULOS={sop:'Soportes',anun:'Anunciantes',disp:'Disponible para vender',ons:'Salido en OnSign'};
 const side=document.getElementById('side'), velo=document.getElementById('velo'), btnMenu=document.getElementById('btnMenu');
 const esMovil=matchMedia('(max-width:1000px)');
 const abrirMenu=a=>{ side.classList.toggle('abierta',a); velo.classList.toggle('abierta',a); btnMenu.setAttribute('aria-expanded',a); side.inert=esMovil.matches&&!a; if(a) (side.querySelector('[aria-current]')||side.querySelector('button')).focus(); };
@@ -901,8 +955,8 @@ function cambiarVista(v){
   vista=v; try{ history.replaceState(null,'','#'+v); }catch(e){}
   document.querySelectorAll('#sideNav button').forEach(b=>{ if(b.dataset.v===v) b.setAttribute('aria-current','page'); else b.removeAttribute('aria-current'); });
   document.getElementById('tituloVista').textContent=TITULOS[v]; abrirMenu(false);
-  document.getElementById('vSop').hidden=v!=='sop'; document.getElementById('vAnun').hidden=v!=='anun'; document.getElementById('vDisp').hidden=v!=='disp';
-  document.getElementById('ctlMes').hidden=v==='disp';
+  document.getElementById('vSop').hidden=v!=='sop'; document.getElementById('vAnun').hidden=v!=='anun'; document.getElementById('vDisp').hidden=v!=='disp'; document.getElementById('vOns').hidden=v!=='ons';
+  document.getElementById('ctlMes').hidden=v==='disp'||v==='ons';
   ocultarTip(); renderTodo(); armarSecciones(); window.scrollTo({top:0,behavior:'auto'});
 }
 document.querySelectorAll('#sideNav button').forEach(b=>b.onclick=()=>cambiarVista(b.dataset.v));
@@ -924,7 +978,195 @@ function renderSim(){
 document.querySelectorAll('#segDur button').forEach(b=>b.onclick=()=>{ simDur=+b.dataset.d;
   document.querySelectorAll('#segDur button').forEach(x=>x.setAttribute('aria-pressed',x===b)); renderSim(); });
 
-function renderTodo(){ if(vista==='sop'){ renderTabla(); renderDetalle(); } else if(vista==='anun') renderAnun(); else renderDisp(); }
+// ───── Salido en OnSign: se arrastra un informe de OnSign y se compara con la planilla.
+// El archivo se lee en esta compu (nunca sale del navegador) y se descarta al cerrar la página.
+// Qué pantallas de OnSign forman cada soporte de la planilla (por el nombre del player).
+const ONS_PANTALLAS={
+  'Facal':/^LED\$FACAL/i, 'Ramon Anador':/^LED\$OUTDOOR\$RAMON\$ANADOR/i, 'Reinaldo':/^LED\$OUTDOOR\$REINALDO/i,
+  'WTC Ascensores':/^WTC\$(TORRE\d|FZ\d)\$(QBIC\$)?ASCENSOR/i, 'WTC Ascensores Punta del Este':/^WTC\$FZ\$PUNTADELESTE\$ASCENSOR/i,
+  'WTC Verticales':/^WTC\$.*(TOTEM|PANTALLA)/i, 'MAS BUS':/^\d+_CO(ETC|ME)_/i,
+  'Nautico':/^NAUTICO\$(?!.*VERTICAL)/i, 'Aerobic':/^AEROBIC\$/i, 'Flex':/^CLUBFLEX\$/i, 'Remeros Estandar':/^CLUBREMEROS\$(?!.*VERTICAL)/i,
+  'Defensor Sporting Estandar':/^CLUBDEFENSOR\$/i, 'Juventud de las Piedras':/^JUVENTUDDELASPIEDRAS\$/i,
+  'Plaza 7 Gran Formato':/^LED\$PLAZADEDEPORTES7/i, 'Sense Gran Formato Pocitos':/^LED\$SENSE\$POCITOS/i, 'Sense Gran Formato Nuevo Centro':/^LED\$SENSE\$NUEVOCENTRO/i,
+  'Outdoor Remeros':/^LED\$CLUB\$REMEROS/i, 'Defensor Sporting Gran Formato':/^LED\$CLUB\$DEFENSOR/i, 'Vida Fit Gran Formato':/VIDA.?FIT/i,
+  // Punta Carretas Shopping: por el nombre de las pantallas, falta confirmarlo con tráfico.
+  'Punta Carretas Led Ascensor':/^LED\$PCS\$ASCENSOR/i, 'Punta Carretas Balconera Zara':/^LED\$PCS\$BALCON\$ZARA/i,
+  'Punta Carretas Balconera Plaza de Comida':/^LED\$PCS\$BALCON\$PLAZADECOMIDA/i, 'Punta Carretas Parking':/^LED\$PCS\$PARKING/i,
+  'Punta Carretas Columnas 360':/^(LED\$PCS\$COLUMNA360|PUNTASHOPPING\$LED360)/i, 'Punta Carretas Columnas Verticales':/^LED\$PCS\$COLUMNA\$/i,
+};
+// Soportes que no se comparan, con el motivo.
+const ONS_FUERA={'Sense Estandar':'Tráfico pidió no tomarlo: todavía no se publicó su estructura en OnSign.'};
+const ONS_GENERICAS=new Set(['INSTITUCIONAL','LAS','LOS','DEL','THE','CLUB','FUNDACION','TIENDA','NUEVO','ENERGIA','INDUSTRIA','MINERIA']);
+const ONS_ALIAS={MINISTERIODEINDUSTRIAENERGIAYMINERIA:['MINISTERIO'],CREDITEL:['CREDIRTEL']};
+const claveOns=s=>String(s||'').normalize('NFD').replace(/[̀-ͯ]/g,'').toUpperCase().replace(/[^A-Z0-9]/g,'');
+// Palabras con las que se busca al anunciante dentro del nombre de la pieza.
+function palabrasOns(anun){
+  const junto=claveOns(anun);
+  const w=[...String(anun).split(/[\s,.]+/).map(claveOns),...(ONS_ALIAS[junto]||[])].filter(x=>x.length>=3&&!ONS_GENERICAS.has(x));
+  return [...new Set([junto,...w])].filter(Boolean);
+}
+// CSV con comillas (los nombres de piezas pueden tener comas).
+function leerCSV(txt){
+  const filas=[]; let fila=[], campo='', q=false;
+  for(let i=0;i<txt.length;i++){ const c=txt[i];
+    if(q){ if(c==='"'){ if(txt[i+1]==='"'){ campo+='"'; i++; } else q=false; } else campo+=c; }
+    else if(c==='"') q=true; else if(c===','){ fila.push(campo); campo=''; }
+    else if(c==='\n'||c==='\r'){ if(c==='\r'&&txt[i+1]==='\n') i++; fila.push(campo); filas.push(fila); fila=[]; campo=''; }
+    else campo+=c; }
+  if(campo||fila.length){ fila.push(campo); filas.push(fila); }
+  return filas;
+}
+// Informe en HTML (el formato que OnSign baja por defecto): una tabla por día con el título "1 de noviembre de 2026".
+function leerInformeOnsHTML(txt){
+  const MES={enero:1,febrero:2,marzo:3,abril:4,mayo:5,junio:6,julio:7,agosto:8,septiembre:9,setiembre:9,octubre:10,noviembre:11,diciembre:12};
+  const ent=s=>s.replace(/&#(\d+);/g,(_,n)=>String.fromCharCode(+n)).replace(/&#x([0-9a-f]+);/gi,(_,n)=>String.fromCharCode(parseInt(n,16)))
+    .replace(/&quot;/g,'"').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').trim();
+  const dias=new Map();
+  txt.split('<table').slice(1).forEach(tb=>{
+    const m=/<th[^>]*colspan[^>]*>\s*(\d{1,2}) de ([a-zé]+) de (\d{4})\s*<\/th>/i.exec(tb.slice(0,800));
+    if(!m||!MES[m[2].toLowerCase()]) return; // la tabla final ("Players en este informe") no tiene fecha
+    const d=`${m[3]}-${String(MES[m[2].toLowerCase()]).padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+    if(!dias.has(d)) dias.set(d,new Map()); const P=dias.get(d);
+    const re=/<tr>\s*<td>\d+<\/td>\s*<td[^>]*>([^<]*)<\/td>\s*<td[^>]*>[^<]*<\/td>\s*<td[^>]*>([^<]*)<\/td>\s*<td[^>]*>[^<]*<\/td>\s*<td[^>]*>(\d+)<\/td>/g;
+    let r; while((r=re.exec(tb))){ const c=ent(r[1]), pl=ent(r[2]), n=+r[3];
+      if(!P.has(pl)) P.set(pl,new Map()); const C=P.get(pl); C.set(c,(C.get(c)||0)+n); }
+  });
+  return dias;
+}
+// Acepta el "Resumen Diario por Player" (una fila por pieza, pantalla y día) y las "Reproducciones individuales" (una fila por salida).
+function leerInformeOns(txt){
+  if(/^\s*<(!doctype|html)/i.test(txt)){ const dias=leerInformeOnsHTML(txt);
+    if(!dias.size) throw new Error('No parece un informe de Reproducción de OnSign (no se encontraron tablas por día).');
+    dias.forEach(P=>P.forEach(C=>[...C.keys()].forEach(c=>{ if(c.endsWith('.mp4')&&C.has(c.slice(0,-4))) C.delete(c); })));
+    return dias; }
+  const f=leerCSV(txt.replace(/^﻿/,'')); if(f.length<2) throw new Error('El archivo está vacío.');
+  const h=f[0].map(x=>x.trim()), col=n=>h.indexOf(n);
+  const iCont=col('Nombre del contenido'), iPlay=col('Nombre del player');
+  const iDia=col('Día'), iN=col('N.º reproducido'), iFH=col('Fecha/Hora');
+  if(iCont<0||iPlay<0||(iDia<0&&iFH<0)) throw new Error('No parece un informe de Reproducción de OnSign (faltan las columnas de contenido, player o día).');
+  const dias=new Map();
+  for(let k=1;k<f.length;k++){ const r=f[k]; if(r.length<h.length) continue;
+    let d;
+    if(iDia>=0){ const m=/^(\d{2})\/(\d{2})\/(\d{4})$/.exec(r[iDia].trim()); if(!m) continue; d=`${m[3]}-${m[2]}-${m[1]}`; }
+    else { d=r[iFH].trim().slice(0,10); if(!/^\d{4}-\d{2}-\d{2}$/.test(d)) continue; }
+    const n=iN>=0?Number(r[iN])||0:1;
+    if(!dias.has(d)) dias.set(d,new Map()); const P=dias.get(d), pl=r[iPlay].trim();
+    if(!P.has(pl)) P.set(pl,new Map()); const C=P.get(pl), c=r[iCont].trim();
+    C.set(c,(C.get(c)||0)+n); }
+  // Una campaña aparece dos veces: como "Campaña" y como su .mp4. Se cuenta una sola.
+  dias.forEach(P=>P.forEach(C=>[...C.keys()].forEach(c=>{ if(c.endsWith('.mp4')&&C.has(c.slice(0,-4))) C.delete(c); })));
+  if(!dias.size) throw new Error('No se encontraron días en el archivo.');
+  return dias;
+}
+// Qué parte del nombre de una pieza dice el anunciante. Hay tres formas de nombrar en OnSign:
+// "007806_OUTDOOR_FACAL_P_FUNDACION_HERRERA-10" (pauta = "_P_"), la nueva "0354-OUTDOOR_FACAL-PT-X-STIENDA-Y-CIBERLUNES-Z-…"
+// (pauta = "-PT-", anunciante después de "-X-", campaña después de "-Y-") y piezas sin código ("tigo_uy_paquetigos…").
+// tipo: 'P' pauta reconocida; 'S' sin código (solo cuenta si coincide con un anunciante vendido); null institucional u otra cosa.
+function piezaOns(c){
+  let i=c.indexOf('_P_'); if(i>=0){ const cola=c.slice(i+3); return {tipo:'P',cola,anun:cola.replace(/^((V|VERTICAL|ASCENSORES|HORIZONTAL)_)+/,'').split('_')[0]}; }
+  if(/-PT-/.test(c)){ const m=/-X-(.*?)(?:-Y-|$)/.exec(c), cola=m?c.slice(c.indexOf('-X-')+3):c.slice(c.indexOf('-PT-')+4); return {tipo:'P',cola,anun:m?m[1].replace(/_/g,' '):cola.split(/[-_]/)[0]}; }
+  if(/^\d{3,}[_-]/.test(c)||/_[A-Z]{1,2}_/.test(c)) return {tipo:null};
+  return {tipo:'S',cola:c,anun:''};
+}
+let ONS=null, onsDia=null, onsSop=null, onsNombre='', onsIncompletos=new Set();
+// Un día con muchas menos salidas que el mejor día del informe quedó cortado (el informe se bajó a mitad del día).
+function diasIncompletos(dias){
+  const tot=new Map([...dias].map(([d,P])=>[d,[...P.values()].reduce((a,C)=>a+[...C.values()].reduce((x,y)=>x+y,0),0)]));
+  const max=Math.max(...tot.values());
+  return new Set([...tot].filter(([,v])=>v<max*0.8).map(([d])=>d));
+}
+const hsOnDe=(n,d)=>{ const m=d.slice(0,7), s=(DATA[m]||DATA[LISTA_MESES[LISTA_MESES.length-1]]).soportes.find(x=>x.nombre===n); return s?s.hsOn:0; };
+// Compara un soporte en un día: lo vendido (planilla) contra lo salido (OnSign).
+function compararOns(n,d){
+  const P=ONS.get(d)||new Map(), re=ONS_PANTALLAS[n];
+  const pantallas=re?[...P.keys()].filter(p=>re.test(p)):[];
+  const hs=hsOnDe(n,d);
+  const ords=(DATOS.ordenes||[]).filter(o=>o.soporte===n&&o.tipo==='TRADICIONAL'&&o.fi&&o.fi<=d&&(!o.ff||o.ff>=d)&&!(o.ff&&o.ff<o.fi));
+  // Por anunciante. El espacio fijo es una sola campaña madre: se toma la de más salidas, no la suma de sus spots.
+  const an=new Map();
+  ords.forEach(o=>{ const k=claveAn(o.anun); let a=an.get(k);
+    if(!a){ a={anun:o.anun,nombres:new Set(),camps:new Set(),sal:0,fijo:0}; an.set(k,a); }
+    a.nombres.add(o.anun); if(o.camp&&!/^[A-Z][a-z]{2} [A-Z][a-z]{2} \d{2} \d{4} /.test(o.camp)) a.camps.add(o.camp); // a veces la planilla trae una fecha como campaña
+    if(o.espacioFijo) a.fijo=Math.max(a.fijo,o.sal); else a.sal+=o.sal; });
+  const piezas=new Map();
+  const info=new Map();
+  if(pantallas.length) pantallas.forEach(p=>P.get(p).forEach((v,c)=>{ if(!info.has(c)) info.set(c,piezaOns(c)); if(!info.get(c).tipo) return; piezas.set(c,(piezas.get(c)||0)+v/pantallas.length); }));
+  const usadas=new Set();
+  const filas=[...an.values()].map(a=>{
+    const ws=[...new Set([...a.nombres].flatMap(palabrasOns))];
+    let real=0; piezas.forEach((v,c)=>{ const cola=claveOns(info.get(c).cola); if(ws.some(w=>cola.includes(w))){ real+=v; usadas.add(c); } });
+    const vend=(a.sal+a.fijo)*hs, r=vend?real/vend:0;
+    const est=!pantallas.length?'':real<0.5?'no':r<0.8?'menos':'ok';
+    return {anun:a.anun,camps:[...a.camps],vend,real,r,est};
+  }).sort((x,y)=>({no:0,menos:1,ok:2,'':3}[x.est]-{no:0,menos:1,ok:2,'':3}[y.est])||y.vend-x.vend);
+  const extra=new Map();
+  piezas.forEach((v,c)=>{ const x=info.get(c); if(usadas.has(c)||x.tipo!=='P') return; extra.set(x.anun,(extra.get(x.anun)||0)+v); });
+  // Total de salidas del soporte en el día contra su mejor día del informe: si da mucho menos, la pantalla estuvo apagada o cortada parte del día.
+  const totDia=dd=>{ const Q=ONS.get(dd); return Q?pantallas.reduce((a,p)=>a+(Q.has(p)?[...Q.get(p).values()].reduce((x,y)=>x+y,0):0),0):0; };
+  const hoyTot=totDia(d), mejor=Math.max(...[...ONS.keys()].filter(x=>!onsIncompletos.has(x)).map(totDia));
+  const apagada=pantallas.length&&ONS.size>1&&!onsIncompletos.has(d)&&mejor>0&&hoyTot<mejor*0.7?hoyTot/mejor:0;
+  return {pantallas:pantallas.length,hs,apagada,filas,extra:[...extra.entries()].filter(e=>e[1]>=0.5).sort((x,y)=>y[1]-x[1])};
+}
+const ESTADOS={ok:['Sale bien','est-ok'],menos:['Sale menos','est-menos'],no:['No sale','est-no']};
+const fmtDia=d=>{ const f=new Date(d+'T12:00:00'); return f.toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'numeric'}); };
+function renderOns(){
+  const ctl=document.getElementById('onsCtl'); ctl.hidden=!ONS;
+  document.getElementById('onsPasos').hidden=!!ONS;
+  if(!ONS) return;
+  const sops=NOMBRES.filter(n=>sel.has(n)&&!ONS_FUERA[n]);
+  const R=sops.map(n=>({n,c:compararOns(n,onsDia)})).filter(x=>x.c.filas.length||x.c.pantallas);
+  const cuenta=(c,e)=>c.filas.filter(f=>f.est===e).length;
+  const T=R.filter(x=>x.c.pantallas).reduce((a,x)=>({v:a.v+x.c.filas.length,ok:a.ok+cuenta(x.c,'ok'),menos:a.menos+cuenta(x.c,'menos'),no:a.no+cuenta(x.c,'no'),ex:a.ex+x.c.extra.length}),{v:0,ok:0,menos:0,no:0,ex:0});
+  document.getElementById('onsKpis').innerHTML=[
+    ['Anunciantes vendidos',fmt(T.v),`en ${R.filter(x=>x.c.pantallas).length} soportes con pantallas en el informe`],
+    ['Salen bien',fmt(T.ok),T.v?pct(T.ok/T.v)+' de lo vendido':''],['Salen menos',fmt(T.menos),'menos del 80% de lo vendido'],
+    ['No salen',fmt(T.no),'ninguna vez en el día'],['Salen sin estar vendidos',fmt(T.ex),'piezas de pauta sin orden en la planilla'],
+  ].map(([l,v,s])=>`<div class="kpi"><span class="eyebrow">${l}</span><span class="v">${v}</span><span class="s">${s}</span></div>`).join('');
+  if(onsSop&&!R.some(x=>x.n===onsSop)) onsSop=null;
+  if(!onsSop){ const pri=R.find(x=>x.c.pantallas&&(cuenta(x.c,'no')||cuenta(x.c,'menos')))||R[0]; onsSop=pri?pri.n:null; }
+  const num=(v,e)=>v?`<span class="est ${e}">${v}</span>`:'<span style="color:var(--muted)">0</span>';
+  document.querySelector('#tblOns tbody').innerHTML=R.length?R.map(x=>{ const c=x.c;
+    return `<tr tabindex="0" data-n="${esc(x.n)}" class="${x.n===onsSop?'sel':''}" style="cursor:pointer"><td><span class="sopname">${esc(x.n)}</span>${c.pantallas?(c.apagada?`<span class="soptipo" style="color:var(--limite)">Salió ${pct(c.apagada)} de su mejor día: ¿estuvo apagada?</span>`:''):'<span class="soptipo">No encontré sus pantallas en el informe</span>'}</td>
+      <td class="r num">${c.pantallas||'—'}</td><td class="r num">${c.filas.length}</td>
+      <td class="r num">${c.pantallas?cuenta(c,'ok'):'—'}</td><td class="r num">${c.pantallas?num(cuenta(c,'menos'),'est-menos'):'—'}</td>
+      <td class="r num">${c.pantallas?num(cuenta(c,'no'),'est-no'):'—'}</td><td class="r num">${c.pantallas?num(c.extra.length,'est-extra'):'—'}</td></tr>`; }).join('')
+    :'<tr><td colspan="7" class="vacio">Ningún soporte elegido tiene órdenes ni pantallas en este día.</td></tr>';
+  document.querySelectorAll('#tblOns tbody tr[data-n]').forEach(tr=>{ tr.onclick=()=>{ onsSop=tr.dataset.n; renderOns(); document.getElementById('sO2').scrollIntoView({behavior:REDUCE?'auto':'smooth'}); }; tr.onkeydown=e=>{ if(e.key==='Enter') tr.onclick(); }; });
+  // Detalle
+  const x=R.find(r=>r.n===onsSop), det=document.querySelector('#tblOnsDet tbody'), ext=document.getElementById('onsExtra');
+  if(!x){ det.innerHTML='<tr><td colspan="5" class="vacio">Elegí un soporte en la tabla de arriba.</td></tr>'; ext.innerHTML=''; return; }
+  const c=x.c;
+  document.getElementById('onsDetTit').textContent=x.n;
+  document.getElementById('onsDetSub').textContent=(onsIncompletos.has(onsDia)?'Día incompleto en el informe: las salidas dan de menos. ':'')+(c.apagada?`Ese día el soporte tuvo ${pct(c.apagada)} de las salidas de su mejor día del informe: puede haber estado apagado parte del día. `:'')+(c.pantallas?`${fmtDia(onsDia)} · ${c.pantallas} pantalla${c.pantallas===1?'':'s'} en OnSign · la app calcula ${c.hs} h por día. Salidas en OnSign = promedio por pantalla.`:`${fmtDia(onsDia)} · el informe no tiene pantallas de este soporte, así que no se puede comparar.`);
+  det.innerHTML=c.filas.length?c.filas.map(f=>`<tr><td><span class="sopname">${esc(f.anun)}</span><span class="soptipo">${esc(f.camps.join(' · '))}</span></td>
+    <td class="r num">${fmt(f.vend)}</td><td class="r num">${c.pantallas?fmt(f.real):'—'}</td><td class="r num">${c.pantallas&&f.vend?pct(f.r):'—'}</td>
+    <td>${f.est?`<span class="est ${ESTADOS[f.est][1]}">${ESTADOS[f.est][0]}</span>`:''}</td></tr>`).join('')
+    :'<tr><td colspan="5" class="vacio">No hay órdenes activas en la planilla para este día.</td></tr>';
+  ext.innerHTML=c.extra.length?`<b>Salen en OnSign y no están vendidos en este soporte</b> (salidas por pantalla en el día, según el nombre de la pieza):<ul>${c.extra.map(([k,v])=>`<li>${esc(k)}: ${fmt(v)}</li>`).join('')}</ul>`:'';
+}
+function cargarOns(file){
+  const tit=document.getElementById('onsTitulo'), sub=document.getElementById('onsSub');
+  if(!file) return;
+  if(file.size>300e6){ tit.textContent='El archivo es demasiado grande.'; return; }
+  tit.textContent='Leyendo '+file.name+'…'; sub.textContent='';
+  file.text().then(txt=>{
+    ONS=leerInformeOns(txt); onsNombre=file.name;
+    const dias=[...ONS.keys()].sort(); onsIncompletos=dias.length>1?diasIncompletos(ONS):new Set();
+    const completos=dias.filter(d=>!onsIncompletos.has(d)); onsDia=(completos.length?completos:dias).slice(-1)[0]; onsSop=null;
+    const s=document.getElementById('onsDia');
+    s.innerHTML=dias.map(d=>`<option value="${d}" ${d===onsDia?'selected':''}>${fmtDia(d)}${onsIncompletos.has(d)?' · incompleto':''}</option>`).join('');
+    tit.textContent=file.name; sub.textContent=`${dias.length} día${dias.length===1?'':'s'} (${fmtDia(dias[0])}${dias.length>1?' al '+fmtDia(dias[dias.length-1]):''}).${onsIncompletos.size?' Los días marcados "incompleto" tienen muchas menos salidas que el resto: el informe se cortó a mitad del día.':''} Arrastrá otro para cambiarlo.`;
+    renderOns();
+  }).catch(e=>{ ONS=null; tit.textContent='No se pudo leer el archivo.'; sub.textContent=e&&e.message||''; renderOns(); });
+}
+(()=>{ const z=document.getElementById('onsSoltar'), inp=document.getElementById('onsArchivo');
+  inp.onchange=()=>{ cargarOns(inp.files[0]); inp.value=''; };
+  z.ondragover=e=>{ e.preventDefault(); z.classList.add('encima'); }; z.ondragleave=()=>z.classList.remove('encima');
+  z.ondrop=e=>{ e.preventDefault(); z.classList.remove('encima'); cargarOns(e.dataTransfer.files[0]); };
+  document.getElementById('onsDia').onchange=e=>{ onsDia=e.target.value; renderOns(); };
+})();
+
+function renderTodo(){ if(vista==='sop'){ renderTabla(); renderDetalle(); } else if(vista==='anun') renderAnun(); else if(vista==='ons') renderOns(); else renderDisp(); }
 const sm=document.getElementById('selMes');
 sm.innerHTML=LISTA_MESES.map(k=>`<option value="${k}" ${k===mes?'selected':''}>${MESES[k]}${k>MES_HOY?' · cargado hasta hoy':k===MES_HOY?' · en curso':''}</option>`).join('');
 sm.onchange=()=>{ mes=sm.value; renderTodo(); };

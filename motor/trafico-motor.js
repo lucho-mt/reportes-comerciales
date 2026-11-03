@@ -1,6 +1,6 @@
 // COPIA del motor de la app "Tráfico de Pautas" (github.com/LaloFissore/Reimpulso).
-// Generado por herramientas/actualizar-motor.js el 2026-10-12. NO editar a mano.
-// sha256 del trafico-pautas.html original: a5f29471357a790c4439829c0d81dd67123368111b55816f90e906971250cf4a
+// Generado por herramientas/actualizar-motor.js el 2026-11-03. NO editar a mano.
+// sha256 del trafico-pautas.html original: 4b289ade2f14c2a855e98ecf064b07a07f55e7b124d6488c92db05e6e9efb88c
 
 // ══════════════ CONFIGURACIÓN DE SOPORTES (agregar uno = una línea acá) ══════════════
 // Cada soporte define su propia estructura de programación. Los campos que
@@ -141,6 +141,40 @@ function getCircuito(nombre){ return CIRCUITOS.find(c=>c.nombre===nombre) || nul
 // Canal "virtual" que representa el circuito entero. No tiene pestaña en la
 // Sheet ni órdenes propias: muestra todo lo que sale en cualquiera de sus
 // canales, con la etiqueta de dónde se reproduce cada pauta.
+// ── PUNTA CARRETAS SHOPPING ──────────────────────────────────────────
+// Se maneja pantalla por pantalla, no como circuito: cada una tiene su propia
+// grilla aunque compartan la forma.
+// La mayoría repite la estructura de los outdoor: Grupo Madre de 45s
+// (PE 12s + Pauta 21s + PE 12s), 16 bloques en 4 ciclos de 4, 4 programaciones
+// por hora → 336s de tradicional y 384s de PE por programación.
+const PARAMS_PCS = { ...PARAMS_OUTDOOR, durProgSeg:920, hsOn:11 };
+const NOMBRES_PCS = [
+  'Punta Carretas Columnas Verticales',
+  'Punta Carretas Columnas 360',
+  // Las dos balconeras comparten la forma pero se venden y programan por
+  // separado, así que van como soportes independientes con su propia grilla.
+  'Punta Carretas Balconera Zara',
+  'Punta Carretas Balconera Plaza de Comida',
+  'Punta Carretas Parking',
+];
+const SOPORTES_PCS = NOMBRES_PCS.map(n => ({
+  nombre:n, nombreCompleto:'Punta Carretas Shopping — '+n.replace('Punta Carretas ',''),
+  hoja:n, asanaGid:'', espacioFijoSalHora:0,
+  ...PARAMS_PCS,
+}));
+// El Led del ascensor es la excepción: un solo slot de PE por grupo, así que el
+// Grupo Madre son 33s (Pauta 21s + PE 12s) y entran 24 bloques en 4 ciclos de 6
+// → 504s de tradicional y 288s de PE por programación.
+// Los ciclos alternan 228s y 223s según abran con Bloque BP o con Branding; la
+// app no necesita esa distinción porque todos tienen 6 Grupos Madre.
+const PARAMS_PCS_ASCENSOR = { durProgSeg:902, pautaXProgSeg:792, progsXHora:4, bloquesXProg:24,
+  gruposXCiclo:6, pePorGrupo:1, capacidadFija:false, unaPautaPorBloque:false,
+  capBloque:33,        // 21s Pauta + 12s PE
+  capPE:12,            // máximo del slot PE del grupo
+  capTRAD_min:21,      // con el PE ocupado
+  capTRAD_max:33,      // con el PE vacío, la pauta absorbe esos 12s
+  pautaXHoraSeg:3168, hsOn:11 };
+
 const SOPORTES_CIRCUITO = CIRCUITOS.map(c => ({
   nombre:c.nombre, nombreCompleto:c.etiqueta, hoja:null, asanaGid:'',
   espacioFijoSalHora:0, esCircuito:true, canales:[...c.canales],
@@ -157,7 +191,13 @@ const SOPORTES = [
   // 24 bloques de 15s de Pauta + 10s de PE, 4 programaciones por hora.
   { nombre:'WTC Ascensores Punta del Este', nombreCompleto:'WTC Ascensores Punta del Este', hoja:'WTC Ascensores Punta del Este', asanaGid:'', espacioFijoSalHora:10, ...PARAMS_WTC },
   { nombre:'WTC Verticales', nombreCompleto:'WTC Verticales',     hoja:'WTC Verticales', asanaGid:'', espacioFijoSalHora:10, ...PARAMS_WTCVERT },
+  // Misma estructura que WTC Verticales (4 ciclos de 4 Grupos Madre, 16 bloques
+  // de 35s de Pauta + 10s de PE dinámico, 4 programaciones por hora), pero con
+  // 12 horas ON en vez de 11.
+  { nombre:'LED Defensor', nombreCompleto:'LED Defensor',           hoja:'LED Defensor', asanaGid:'', espacioFijoSalHora:0, ...PARAMS_WTCVERT, hsOn:12 },
   { nombre:'MAS BUS',      nombreCompleto:'MAS BUS',              hoja:'MAS BUS',      asanaGid:'', espacioFijoSalHora:4,  ...PARAMS_MASBUS },
+  { nombre:'Punta Carretas Led Ascensor', nombreCompleto:'Punta Carretas Shopping — Led Ascensor', hoja:'Punta Carretas Led Ascensor', asanaGid:'', espacioFijoSalHora:0, ...PARAMS_PCS_ASCENSOR },
+  ...SOPORTES_PCS,
   ...SOPORTES_CIRCUITO,
   ...SOPORTES_TIPO_DEPORTIVO,
   ...SOPORTES_GRAN_FORMATO,
@@ -1276,6 +1316,7 @@ function cambiarVista(v){
   document.getElementById('viewOrdenes').style.display=v==='ordenes'?'block':'none';
   document.getElementById('viewSoporte').style.display=v==='soporte'?'block':'none';
   document.getElementById('viewBuscar').style.display=v==='buscar'?'block':'none';
+  document.getElementById('viewResumen').style.display=v==='resumen'?'block':'none';
   if(v==='soporte') document.getElementById('sopSelect').value=soporteSeleccionado;
   invalidarCache();
   renderActiva();
@@ -1285,6 +1326,7 @@ function renderActiva(){
   updateHeader();
   if(vistaActual==='ordenes') renderOrdenes();
   else if(vistaActual==='soporte') renderSoporte();
+  else if(vistaActual==='resumen') renderResumen();
   else renderBuscar();
 }
 function updateHeader(){
