@@ -46,7 +46,8 @@ function enfocar(n){ foco=(foco===n)?null:n; renderTabla(); renderDetalle(); }
 function tot(s){ const r={cap:0,contr:0,plus:0,aire:0,pe:0,capPE:0,diasExc:0};
   s.diario.forEach(d=>{ r.cap+=d.capTrad; r.contr+=d.contr; r.plus+=plusVisible(d); r.aire+=Math.min(d.contr,d.capTrad); r.pe+=d.peVend; r.capPE+=d.capPE; if(d.contr>d.capTrad+1) r.diasExc++; });
   return r; }
-function estado(o){ if(o>1.005) return '<span class="pill exc">Sobrevendido</span>'; if(o>=.85) return '<span class="pill alto">Casi lleno</span>'; return '<span class="pill ok">Con lugar</span>'; }
+function estado(o,diasExc=0){ if(o>1.005) return '<span class="pill exc">Sobrevendido</span>';
+  if(diasExc) return `<span class="pill exc" title="El mes da ${pct(o)}, pero ${diasExc} día${diasExc===1?'':'s'} se vendió más de lo que entra">Sobrevendido ${diasExc} día${diasExc===1?'':'s'}</span>`; if(o>=.85) return '<span class="pill alto">Casi lleno</span>'; return '<span class="pill ok">Con lugar</span>'; }
 function nombreSel(){ const n=sel.size; if(n===0) return 'ningún soporte elegido'; if(n===NOMBRES.length) return 'Todos los soportes';
   for(const g of GRUPOS){ const m=NOMBRES.filter(x=>tipoDe(soportesMes().find(s=>s.nombre===x))===g); if(m.length===n && m.every(x=>sel.has(x))) return g; }
   return n===1?[...sel][0]:n+' soportes'; }
@@ -109,10 +110,10 @@ function renderTabla(){
     return deltaHTML(oc, tA.cap?tA.contr/tA.cap:0, nomMesL(ant)); };
   // La barra entera es el 100% de la capacidad. Sobrevendido: barra roja completa y cuánto se pasó.
   const barra=(t)=>{ const oc=t.contr/t.cap, W=v=>(Math.max(0,Math.min(v,1))*100).toFixed(2)+'%';
-    if(oc>1) return `<div class="bar" title="Contratado ${pct(oc)}: se vendió más de lo que entra"><span class="x" style="left:0" data-w="100%"></span><b class="sobra">+${pct(oc-1)} vendido de más</b></div>`;
+    if(oc>1) return `<div class="bar" title="Contratado ${pct(oc)}: se vendió más de lo que entra"><span class="x" style="left:0" data-w="100%"></span><b class="sobra">+${pct(oc-1)}</b></div>`;
     return `<div class="bar" title="Contratado ${pct(oc)} · con Plus ${pct((t.contr+t.plus)/t.cap)}"><span class="c" style="left:0" data-w="${W(oc)}"></span>${t.plus>0?`<span class="p" style="left:${W(oc)}" data-w="${W(Math.min(t.plus/t.cap,1-oc))}"></span>`:''}</div>`; };
   tb.innerHTML=rows.map(({s,t})=>`<tr tabindex="0" data-n="${esc(s.nombre)}" class="${s.nombre===foco?'sel':''}" title="${s.nombre===foco?'Tocá de nuevo para volver a la suma':'Ver el detalle de este soporte'}"><td><span class="sopname">${esc(s.nombre)}</span><span class="soptipo">${esc(tipoDe(s))} · ${s.hsOn} h encendido</span></td>
-      <td class="r num">${fmt(t.cap/60)}</td><td class="r num">${fmt(t.contr/60)}</td><td class="r num">${fmt(t.plus/60)}</td><td class="r num">${pct(t.contr/t.cap)}</td><td class="r">${delta(s.nombre,t.contr/t.cap)}</td><td>${barra(t)}</td><td>${estado(t.contr/t.cap)}</td></tr>`).join('');
+      <td class="r num">${fmt(t.cap/60)}</td><td class="r num">${fmt(t.contr/60)}</td><td class="r num">${fmt(t.plus/60)}</td><td class="r num">${pct(t.contr/t.cap)}</td><td class="r">${delta(s.nombre,t.contr/t.cap)}</td><td>${barra(t)}</td><td>${estado(t.contr/t.cap,t.diasExc)}</td></tr>`).join('');
   if(rows.length>1){ const T=rows.reduce((a,{t})=>({cap:a.cap+t.cap,contr:a.contr+t.contr,plus:a.plus+t.plus}),{cap:0,contr:0,plus:0});
     tf.innerHTML=`<tr><td>Total · ${rows.length} soportes</td><td class="r num">${fmt(T.cap/60)}</td><td class="r num">${fmt(T.contr/60)}</td><td class="r num">${fmt(T.plus/60)}</td><td class="r num">${pct(T.contr/T.cap)}</td><td class="r">${delta(null,T.contr/T.cap)}</td><td>${barra(T)}</td><td></td></tr>`;
   } else tf.innerHTML='';
@@ -504,7 +505,7 @@ function ocultarTip(){ tipEl.hidden=true; }
 
 // ───── Menú lateral: vistas y secciones de la vista abierta (se marca la que estás leyendo)
 const SECCIONES={sop:[['s1','Ventas por soporte'],['sMes','Mes a mes'],['s2','Desglose diario'],['s3','Contenidos'],['s4','Plus'],['s5','Simulador']],
-  anun:[['sA1','Ranking'],['sA2','Reporte del anunciante']], disp:[['sD','Disponible para vender']], ons:[['sO0','Informe'],['sO1','Por soporte'],['sO2','Por anunciante']]};
+  anun:[['sA1','Ranking'],['sA2','Reporte del anunciante']], disp:[['sD','Disponible para vender']], ons:[['sO0','Informe'],['sO1','Ventas por soporte'],['sO2','Desglose diario'],['sO3','Contenidos']]};
 const TITULOS={sop:'Soportes',anun:'Anunciantes',disp:'Disponible para vender',ons:'Salido en OnSign'};
 const side=document.getElementById('side'), velo=document.getElementById('velo'), btnMenu=document.getElementById('btnMenu');
 const esMovil=matchMedia('(max-width:1000px)');
@@ -642,6 +643,9 @@ function piezaOns(c){
 }
 let ONS=null, onsDia=null, onsSop=null, onsNombre='', onsIncompletos=new Set();
 // Un día con muchas menos salidas que el mejor día del informe quedó cortado (el informe se bajó a mitad del día).
+// Segundos que dice el nombre de la pieza al final ("…_ALLBODYDEO-10", "…_15s", "…-15.mp4"); 0 si no dice.
+const medianaOns=v=>{ const s=[...v].sort((a,b)=>a-b), m=s.length>>1; return s.length?(s.length%2?s[m]:(s[m-1]+s[m])/2):0; };
+function durNombre(c){ const m=/[-_](\d{1,2})s?(?:\.mp4)?$/i.exec(c); const n=m?+m[1]:0; return n>=4&&n<=60?n:0; }
 function diasIncompletos(dias){
   const tot=new Map([...dias].map(([d,P])=>[d,[...P.values()].reduce((a,C)=>a+[...C.values()].reduce((x,y)=>x+y,0),0)]));
   const max=Math.max(...tot.values());
@@ -657,79 +661,172 @@ function compararOns(n,d){
   // Por anunciante. El espacio fijo es una sola campaña madre: se toma la de más salidas, no la suma de sus spots.
   const an=new Map();
   ords.forEach(o=>{ const k=claveAn(o.anun); let a=an.get(k);
-    if(!a){ a={anun:o.anun,nombres:new Set(),camps:new Set(),sal:0,fijo:0}; an.set(k,a); }
+    if(!a){ a={anun:o.anun,nombres:new Set(),camps:new Set(),sal:0,fijo:0,segH:0,fijoDur:0,durs:new Set()}; an.set(k,a); }
+    if(o.dur) a.durs.add(o.dur);
     a.nombres.add(o.anun); if(o.camp&&!/^[A-Z][a-z]{2} [A-Z][a-z]{2} \d{2} \d{4} /.test(o.camp)) a.camps.add(o.camp); // a veces la planilla trae una fecha como campaña
-    if(o.espacioFijo) a.fijo=Math.max(a.fijo,o.sal); else a.sal+=o.sal; });
+    if(o.espacioFijo){ a.fijo=Math.max(a.fijo,o.sal); a.fijoDur=Math.max(a.fijoDur,o.dur||0); } else { a.sal+=o.sal; a.segH+=o.sal*(o.dur||0); } });
   const piezas=new Map();
   const info=new Map();
   if(pantallas.length) pantallas.forEach(p=>P.get(p).forEach((v,c)=>{ if(!info.has(c)) info.set(c,piezaOns(c)); if(!info.get(c).tipo) return; piezas.set(c,(piezas.get(c)||0)+v/pantallas.length); }));
   const usadas=new Set();
   const filas=[...an.values()].map(a=>{
     const ws=[...new Set([...a.nombres].flatMap(palabrasOns))];
-    let real=0; piezas.forEach((v,c)=>{ const cola=claveOns(info.get(c).cola); if(ws.some(w=>cola.includes(w))){ real+=v; usadas.add(c); } });
-    const vend=(a.sal+a.fijo)*hs, r=vend?real/vend:0;
+    // Duración de cada pieza: la de la planilla; si el anunciante tiene varias, la que dice el nombre de la pieza (si coincide) o la más larga.
+    const durs=[...a.durs], durDe=c=>{ if(durs.length===1) return durs[0]; const dn=durNombre(c); return durs.includes(dn)?dn:(durs.length?Math.max(...durs):dn||10); };
+    let real=0, realSeg=0; piezas.forEach((v,c)=>{ const cola=claveOns(info.get(c).cola); if(ws.some(w=>cola.includes(w))){ real+=v; realSeg+=v*durDe(c); usadas.add(c); } });
+    const vend=(a.sal+a.fijo)*hs, vendSeg=(a.segH+a.fijo*a.fijoDur)*hs, r=vend?real/vend:0;
     const est=!pantallas.length?'':real<0.5?'no':r<0.8?'menos':'ok';
-    return {anun:a.anun,camps:[...a.camps],vend,real,r,est};
+    return {k:claveAn(a.anun),anun:a.anun,camps:[...a.camps],durs,salH:a.sal+a.fijo,vend,real,vendSeg,realSeg,r,est};
   }).sort((x,y)=>({no:0,menos:1,ok:2,'':3}[x.est]-{no:0,menos:1,ok:2,'':3}[y.est])||y.vend-x.vend);
-  const extra=new Map();
-  piezas.forEach((v,c)=>{ const x=info.get(c); if(usadas.has(c)||x.tipo!=='P') return; extra.set(x.anun,(extra.get(x.anun)||0)+v); });
+  const extra=new Map(), extraSeg=new Map();
+  piezas.forEach((v,c)=>{ const x=info.get(c); if(usadas.has(c)||x.tipo!=='P') return; extra.set(x.anun,(extra.get(x.anun)||0)+v); extraSeg.set(x.anun,(extraSeg.get(x.anun)||0)+v*(durNombre(c)||10)); });
   // Total de salidas del soporte en el día contra su mejor día del informe: si da mucho menos, la pantalla estuvo apagada o cortada parte del día.
   const totDia=dd=>{ const Q=ONS.get(dd); return Q?pantallas.reduce((a,p)=>a+(Q.has(p)?[...Q.get(p).values()].reduce((x,y)=>x+y,0):0),0):0; };
-  const hoyTot=totDia(d), mejor=Math.max(...[...ONS.keys()].filter(x=>!onsIncompletos.has(x)).map(totDia));
-  const apagada=pantallas.length&&ONS.size>1&&!onsIncompletos.has(d)&&mejor>0&&hoyTot<mejor*0.7?hoyTot/mejor:0;
-  return {pantallas:pantallas.length,hs,apagada,filas,extra:[...extra.entries()].filter(e=>e[1]>=0.5).sort((x,y)=>y[1]-x[1])};
+  // Se compara con un día típico (la mediana de los días completos), así los fines de semana con menos movimiento no saltan.
+  const hoyTot=totDia(d), tipico=ONS.size>1?medianaOns([...ONS.keys()].filter(x=>!onsIncompletos.has(x)).map(totDia)):0;
+  const apagada=pantallas.length&&ONS.size>1&&!onsIncompletos.has(d)&&tipico>0&&hoyTot<tipico*0.5?hoyTot/tipico:0;
+  const ex=[...extra.entries()].filter(e=>e[1]>=0.5).sort((x,y)=>y[1]-x[1]);
+  return {pantallas:pantallas.length,hs,apagada,filas,extra:ex,extraSeg:ex.reduce((s,[k])=>s+extraSeg.get(k),0),extraSegDe:Object.fromEntries(ex.map(([k])=>[k,extraSeg.get(k)]))};
 }
+// Los días que se miran: uno elegido arriba o todos los completos del informe.
+const diasOns=()=>onsDia==='todos'?[...ONS.keys()].sort().filter(d=>!onsIncompletos.has(d)):[onsDia];
+const diaDe=(n,d)=>{ const M=DATA[d.slice(0,7)], s=M&&M.soportes.find(x=>x.nombre===n); return s?s.diario[+d.slice(8)-1]:null; };
+const fmtCorto=d=>`${+d.slice(8)}/${+d.slice(5,7)}`;
+// Un soporte en los días elegidos: lo planificado (motor, como en Soportes) y lo salido (OnSign).
+function resumenOns(n){
+  const dias=diasOns(), s0=DATA[dias[0].slice(0,7)]&&DATA[dias[0].slice(0,7)].soportes.find(x=>x.nombre===n), r={n,tipo:s0?tipoDe(s0):'',cap:0,contr:0,real:0,extra:0,pantallas:0,hs:hsOnDe(n,dias[0]),apagados:[],diario:[],an:new Map(),ex:new Map()};
+  dias.forEach(d=>{ const p=diaDe(n,d)||{capTrad:0,contr:0}, c=compararOns(n,d);
+    const real=c.filas.reduce((a,f)=>a+f.realSeg,0);
+    r.cap+=p.capTrad; r.contr+=p.contr; r.real+=real; r.extra+=c.extraSeg; r.pantallas=Math.max(r.pantallas,c.pantallas);
+    if(c.apagada) r.apagados.push([d,c.apagada]);
+    r.diario.push({d,cap:p.capTrad,contr:p.contr,aire:Math.min(p.contr,p.capTrad),exc:Math.max(0,p.contr-p.capTrad),real,extra:c.extraSeg,pant:c.pantallas});
+    c.filas.forEach(f=>{ let a=r.an.get(f.k); if(!a){ a={...f,camps:new Set(f.camps),durs:new Set(f.durs),vend:0,real:0,vendSeg:0,realSeg:0,dias:0,salH:0,sops:new Set()}; r.an.set(f.k,a); }
+      f.camps.forEach(x=>a.camps.add(x)); f.durs.forEach(x=>a.durs.add(x)); a.vend+=f.vend; a.real+=f.real; a.vendSeg+=f.vendSeg; a.realSeg+=f.realSeg; a.dias++; a.salH=Math.max(a.salH,f.salH); a.sops.add(n); });
+    c.extra.forEach(([k,v])=>{ const e=r.ex.get(k)||{v:0,seg:0}; e.v+=v; e.seg+=c.extraSegDe[k]; r.ex.set(k,e); }); });
+  r.comparado=r.pantallas>0;
+  return r;
+}
+const estadoAn=a=>!a.vend?'':a.real<0.5?'no':a.real/a.vend<0.8?'menos':'ok';
 const ESTADOS={ok:['Cumple','ok'],menos:['De menos','alto'],no:['No salió','exc']};
 const fmtDia=d=>{ const f=new Date(d+'T12:00:00'); return f.toLocaleDateString('es-UY',{weekday:'long',day:'numeric',month:'numeric'}); };
 const fmtDiaM=d=>{ const s=fmtDia(d); return s[0].toUpperCase()+s.slice(1); };
+let RONS=[], onsVerTodos=false;
+const _top=document.querySelector('header.top');
+const medirTop=()=>{ if(_top) document.documentElement.style.setProperty('--alto-top',(getComputedStyle(_top).position==='sticky'?_top.offsetHeight:0)+'px'); };
+// Los títulos quedan fijos solo si la tabla entra entera en su recuadro (si no, la página se correría para el costado).
+const ajustarPegado=()=>document.querySelectorAll('.tbl-scroll.pegado').forEach(c=>{ c.classList.remove('fija'); const tb=c.querySelector('table'); if(tb&&c.clientWidth&&tb.scrollWidth<=c.clientWidth+2) c.classList.add('fija'); });
+if('ResizeObserver' in window){ const ro=new ResizeObserver(()=>requestAnimationFrame(ajustarPegado)); document.querySelectorAll('.tbl-scroll.pegado').forEach(c=>ro.observe(c.parentElement)); }
+medirTop(); addEventListener('resize',()=>{ medirTop(); ajustarPegado(); });
 function renderOns(){
-  ['sO1','sO2'].forEach(id=>document.getElementById(id).hidden=!ONS);
+  ['sO1','sO2','sO3'].forEach(id=>document.getElementById(id).hidden=!ONS);
   document.getElementById('ctlDia').hidden=vista!=='ons'||!ONS;
   if(!ONS) return;
-  const sops=NOMBRES.filter(n=>sel.has(n)&&!ONS_FUERA[n]);
-  const R=sops.map(n=>({n,c:compararOns(n,onsDia)})).filter(x=>x.c.filas.length||x.c.pantallas);
-  const cuenta=(c,e)=>c.filas.filter(f=>f.est===e).length;
-  const conP=R.filter(x=>x.c.pantallas);
-  const T=conP.reduce((a,x)=>({v:a.v+x.c.filas.length,ok:a.ok+cuenta(x.c,'ok'),menos:a.menos+cuenta(x.c,'menos'),no:a.no+cuenta(x.c,'no'),ex:a.ex+x.c.extra.length}),{v:0,ok:0,menos:0,no:0,ex:0});
-  document.getElementById('onsSopSub').textContent=`${fmtDiaM(onsDia)}${onsIncompletos.has(onsDia)?' (día incompleto en el informe: las salidas dan de menos)':''}. Cuántos de los anunciantes vendidos en cada soporte salieron como se vendió. Tocá un soporte para ver sus anunciantes abajo.`;
+  const dias=diasOns();
+  document.getElementById('onsPer').textContent=(dias.length>1?`Del ${fmtCorto(dias[0])} al ${fmtCorto(dias[dias.length-1])} (${dias.length} días).`:`${fmtDiaM(dias[0])}${onsIncompletos.has(dias[0])?' (día incompleto en el informe: las salidas dan de menos)':''}.`);
+  RONS=NOMBRES.filter(n=>sel.has(n)&&!ONS_FUERA[n]).map(resumenOns).filter(r=>r.cap||r.comparado).sort((a,b)=>(b.cap?b.contr/b.cap:0)-(a.cap?a.contr/a.cap:0));
+  if(onsSop&&!RONS.some(r=>r.n===onsSop)) onsSop=null;
+  // 1 · tabla
+  const W=v=>(Math.max(0,Math.min(v,1))*100).toFixed(2)+'%';
+  // Una sola barra, como en Soportes: lo que salió en OnSign sobre la capacidad. Si pasa del 100%, roja entera y cuánto se pasó.
+  const barras=r=>{ if(!r.comparado) return '';
+    const ore=r.cap?r.real/r.cap:0, oex=r.cap?r.extra/r.cap:0, oc=ore+oex;
+    if(oc>1) return `<div class="bar"><span class="x" style="left:0;width:100%"></span><b class="sobra">+${pct(oc-1)}</b></div>`;
+    return `<div class="bar"><span class="r" style="left:0;width:${W(ore)}"></span><span class="so" style="left:${W(ore)};width:${W(oex)}"></span></div>`; };
+  // Estado en una sola etiqueta, como en Soportes; el detalle va en el globo y en la sección 3.
+  const cuenta=r=>{ if(!r.comparado) return '<span class="soptipo" style="display:inline">Sin pantallas en el informe</span>';
+    const a=[...r.an.values()], c=e=>a.filter(x=>estadoAn(x)===e).length, no=c('no'), menos=c('menos');
+    const tip=`${c('ok')} de ${a.length} anunciantes cumplen${menos?` · ${menos} de menos`:''}${no?` · ${no} no salió`:''}${r.ex.size?` · ${r.ex.size} sin orden`:''}`;
+    if(no) return `<span class="pill exc" title="${tip}">${no} no salió</span>`;
+    if(menos) return `<span class="pill alto" title="${tip}">${menos} de menos</span>`;
+    return `<span class="pill ok" title="${tip}">Todos cumplen</span>`; };
+  const fila=(r,cls,nombre,sub)=>{ const ocV=r.cap?r.contr/r.cap:0, ocR=r.cap?(r.real+r.extra)/r.cap:0;
+    return `<tr ${cls}><td>${nombre}${sub}</td><td class="r num">${fmt(r.cap/60)}</td><td class="r num">${fmt(r.contr/60)}</td><td class="r num">${r.comparado?fmt((r.real+r.extra)/60):'—'}</td>
+      <td class="r num">${pct(ocV)}</td><td class="r num">${r.comparado?`<b>${pct(ocR)}</b>`:'—'}</td><td>${barras(r)}</td><td>${cuenta(r)}</td></tr>`; };
+  const tb=document.querySelector('#tblOns tbody'), tf=document.querySelector('#tblOns tfoot');
+  tb.innerHTML=RONS.length?RONS.map(r=>fila(r,`tabindex="0" data-n="${esc(r.n)}" class="${r.n===onsSop?'sel':''}" style="cursor:pointer"`,`<span class="sopname">${esc(r.n)}</span>`,
+      r.apagados.length?`<span class="ons-alerta">${r.apagados.map(([d,x])=>`${fmtCorto(d)}: salió ${pct(x)} de un día típico, ¿estuvo apagada?`).join(' · ')}</span>`:`<span class="soptipo">${esc(r.tipo)} · ${r.hs} h encendido${r.comparado?` · ${r.pantallas} pantalla${r.pantallas===1?'':'s'}`:''}</span>`)).join('')
+    :'<tr><td colspan="8" class="vacio">Ningún soporte elegido tiene órdenes ni pantallas en estos días.</td></tr>';
+  const C=RONS.filter(r=>r.comparado);
+  if(C.length>1){ const T=C.reduce((a,r)=>{ a.cap+=r.cap; a.contr+=r.contr; a.real+=r.real; a.extra+=r.extra; r.an.forEach((v,k)=>a.an.set(r.n+k,v)); r.ex.forEach((v,k)=>a.ex.set(r.n+k,v)); return a; },{cap:0,contr:0,real:0,extra:0,comparado:true,an:new Map(),ex:new Map()});
+    tf.innerHTML=fila(T,'',`Total · ${C.length} soportes con pantallas en el informe`,''); } else tf.innerHTML='';
+  tb.querySelectorAll('tr[data-n]').forEach(tr=>{ tr.onclick=()=>{ onsSop=onsSop===tr.dataset.n?null:tr.dataset.n; renderOns(); if(onsSop) document.getElementById('sO2').scrollIntoView({behavior:REDUCE?'auto':'smooth'}); }; tr.onkeydown=e=>{ if(e.key==='Enter') tr.onclick(); }; });
+  renderOnsDetalle(); ajustarPegado();
+}
+// Lo que muestran las secciones 2 y 3: el soporte tocado o la suma de los que tienen pantallas en el informe.
+function onsEnfocados(){ const C=RONS.filter(r=>r.comparado); return onsSop?C.filter(r=>r.n===onsSop):C; }
+const LEY_ESTADOS=`<div class="ons-leyenda"><span><span class="pill ok">Cumple</span>salió al menos el 80% de lo vendido</span><span><span class="pill alto">De menos</span>salió, pero menos del 80% de lo vendido</span><span><span class="pill exc">No salió</span>vendido, pero ninguna vez</span><span><span class="pill neutro">Sin orden</span>salió en la pantalla y no está vendido en la planilla</span>      </div>`;
+function renderOnsDetalle(){
+  const E=onsEnfocados(), varios=E.length>1, titulo=onsSop||(varios?`suma de ${E.length} soportes`:E.length?E[0].n:'sin soportes');
+  document.getElementById('onsT2').textContent='Vendido y salido por día · '+titulo;
+  document.getElementById('onsT3').textContent='Anunciantes: vendido contra salido · '+titulo;
+  const nC=RONS.filter(r=>r.comparado).length;
+  document.getElementById('onsFoco').innerHTML=onsSop?`<span>Mostrando solo <b>${esc(onsSop)}</b>.</span>${nC>1?`<button type="button" class="btn" id="onsSuma">Volver a la suma de los ${nC} soportes</button>`:''}`
+    :(nC>1?`<span>Mostrando la <b>suma de ${nC} soportes</b> con pantallas en el informe. Tocá uno en la tabla 1 para verlo solo.</span>`:'');
+  const bs=document.getElementById('onsSuma'); if(bs) bs.onclick=()=>{ onsSop=null; renderOns(); };
+  // KPIs, como en Soportes
+  const T=E.reduce((a,r)=>({cap:a.cap+r.cap,contr:a.contr+r.contr,real:a.real+r.real,extra:a.extra+r.extra}),{cap:0,contr:0,real:0,extra:0});
   const kpi=(l,v,s)=>`<div class="kpi"><span class="eyebrow">${l}</span><span class="v">${v}</span><span class="s">${s}</span></div>`;
-  const deV=n=>T.v?`${pct(n/T.v)} de los vendidos`:'';
-  document.getElementById('onsKpis').innerHTML=[
-    kpi('Anunciantes vendidos',fmt(T.v),`con orden activa en ${conP.length} soportes`),
-    kpi('Cumplen',fmt(T.ok),deV(T.ok)),kpi('Salen de menos',fmt(T.menos),deV(T.menos)),
-    kpi('No salieron',fmt(T.no),deV(T.no)),kpi('Sin orden',fmt(T.ex),'salen y no están en la planilla'),
-  ].join('');
-  if(onsSop&&!R.some(x=>x.n===onsSop)) onsSop=null;
-  if(!onsSop){ const pri=conP.find(x=>cuenta(x.c,'no')||cuenta(x.c,'menos'))||R[0]; onsSop=pri?pri.n:null; }
-  const num=(v,cls)=>v?`<span class="pill ${cls}">${v}</span>`:'<span style="color:var(--muted)">0</span>';
-  document.querySelector('#tblOns tbody').innerHTML=R.length?R.map(x=>{ const c=x.c, p=c.pantallas;
-    const nota=!p?'<span class="soptipo">No hay pantallas de este soporte en el informe</span>':c.apagada?`<span class="ons-alerta">Salió ${pct(c.apagada)} de un día normal: ¿estuvo apagada?</span>`:'';
-    return `<tr tabindex="0" data-n="${esc(x.n)}" class="${x.n===onsSop?'sel':''}" style="cursor:pointer"><td><span class="sopname">${esc(x.n)}</span>${nota}</td>
-      <td class="r num">${p||'—'}</td><td class="r num">${c.filas.length}</td>
-      <td class="r num">${p?cuenta(c,'ok'):'—'}</td><td class="r num">${p?num(cuenta(c,'menos'),'alto'):'—'}</td>
-      <td class="r num">${p?num(cuenta(c,'no'),'exc'):'—'}</td><td class="r num">${p?num(c.extra.length,'neutro'):'—'}</td></tr>`; }).join('')
-    :'<tr><td colspan="7" class="vacio">Ningún soporte elegido tiene órdenes ni pantallas en este día.</td></tr>';
-  document.querySelectorAll('#tblOns tbody tr[data-n]').forEach(tr=>{ tr.onclick=()=>{ onsSop=tr.dataset.n; renderOns(); document.getElementById('sO2').scrollIntoView({behavior:REDUCE?'auto':'smooth'}); }; tr.onkeydown=e=>{ if(e.key==='Enter') tr.onclick(); }; });
-  // Detalle del soporte elegido
-  const x=R.find(r=>r.n===onsSop), det=document.querySelector('#tblOnsDet tbody'), ext=document.getElementById('onsExtra');
-  if(!x){ det.innerHTML='<tr><td colspan="5" class="vacio">Elegí un soporte en la tabla de arriba.</td></tr>'; ext.innerHTML=''; document.getElementById('onsComoDet').innerHTML=''; return; }
-  const c=x.c;
-  document.getElementById('onsDetTit').textContent=x.n;
-  document.getElementById('onsDetSub').textContent=!c.pantallas?`${fmtDiaM(onsDia)}. El informe no tiene pantallas de este soporte, así que no se puede comparar.`
-    :`${fmtDiaM(onsDia)} · ${c.pantallas} pantalla${c.pantallas===1?'':'s'}${c.pantallas>1?' (las salidas son por pantalla, en promedio)':''} · la app calcula ${c.hs} horas por día.`+(c.apagada?` Ese día salió ${pct(c.apagada)} de un día normal: puede haber estado apagada parte del día.`:'');
-  det.innerHTML=c.filas.length?c.filas.map(f=>`<tr><td><span class="sopname">${esc(f.anun)}</span><span class="soptipo">${esc(f.camps.join(' · '))}</span></td>
-    <td class="r num">${fmt(f.vend)}</td><td class="r num">${c.pantallas?fmt(f.real):'—'}</td><td class="r num">${c.pantallas&&f.vend?pct(f.r):'—'}</td>
-    <td>${f.est?`<span class="pill ${ESTADOS[f.est][1]}">${ESTADOS[f.est][0]}</span>`:''}</td></tr>`).join('')
-    :'<tr><td colspan="5" class="vacio">No hay órdenes activas en la planilla para este día.</td></tr>';
-  ext.innerHTML=c.extra.length?`<p><b style="color:var(--ink)">Sin orden:</b> salieron en estas pantallas y no tienen orden en la planilla para ${esc(x.n)} (veces por día${c.pantallas>1?', por pantalla':''}).</p>${c.extra.map(([k,v])=>`<span class="pill neutro">${esc(k)} · ${fmt(v)}</span>`).join('')}`:'';
-  // Explicación con un caso real de la tabla
-  const ej=c.filas.find(f=>f.est==='ok'&&f.vend&&f.camps.length===1&&f.r<1.5)||c.filas.find(f=>f.est==='ok'&&f.vend)||c.filas.find(f=>f.vend&&f.est); // un caso simple: una campaña, cerca del 100%
-  const salH=ej&&c.hs?Math.round(ej.vend/c.hs*100)/100:0;
+  const apag=E.flatMap(r=>r.apagados);
+  document.getElementById('onsKpis').innerHTML=E.length?[
+    kpi('Capacidad',fmt(T.cap/60)+' min',`${diasOns().length} día${diasOns().length===1?'':'s'}${varios?` · ${E.length} soportes`:''}`),
+    kpi('Contratado',fmt(T.contr/60)+' min','Ocupación vendida '+pct(T.cap?T.contr/T.cap:0)),
+    kpi('Salió con orden',fmt(T.real/60)+' min',T.contr?pct(T.real/T.contr)+' de lo contratado':'—'),
+    kpi('Salió sin orden',fmt(T.extra/60)+' min','avisos que no están en la planilla'),
+    kpi('Ocupación en OnSign',pct(T.cap?(T.real+T.extra)/T.cap:0),apag.length?`<span style="color:var(--limite)">${apag.length} día${apag.length===1?'':'s'} con pantalla apagada parte del día</span>`:'todo lo que salió ÷ capacidad'),
+  ].join(''):'';
+  dibujarOnsDia();
+  // 3 · contenidos
+  const an=new Map(), ex=new Map();
+  E.forEach(r=>{ r.an.forEach((a,k)=>{ const x=an.get(k); if(!x){ an.set(k,{...a,camps:new Set(a.camps),durs:new Set(a.durs),sops:new Set(a.sops)}); return; }
+      a.camps.forEach(c=>x.camps.add(c)); a.durs.forEach(c=>x.durs.add(c)); a.sops.forEach(c=>x.sops.add(c)); x.vend+=a.vend; x.real+=a.real; x.vendSeg+=a.vendSeg; x.realSeg+=a.realSeg; x.dias=Math.max(x.dias,a.dias); x.salH=Math.max(x.salH,a.salH); });
+    r.ex.forEach((e,k)=>{ const y=ex.get(k)||{v:0,seg:0,sops:new Set()}; y.v+=e.v; y.seg+=e.seg; y.sops.add(r.n); ex.set(k,y); }); });
+  const nd=diasOns().length, orden={no:0,menos:1,ok:2,'':3};
+  const L=[...an.values()].sort((a,b)=>orden[estadoAn(a)]-orden[estadoAn(b)]||b.vendSeg-a.vendSeg), LIM=15, vis=onsVerTodos?L:L.slice(0,LIM);
+  document.querySelector('#tblOnsDet thead').innerHTML=`<tr class="ley"><td colspan="${varios?8:7}">${LEY_ESTADOS}</td></tr><tr><th>Anunciante · campaña</th>${varios?'<th class="r">Soportes</th>':''}<th class="r">Pieza</th><th class="r">Salidas por día vendidas</th><th class="r">Salidas por día en OnSign</th><th class="r">Min. contratados</th><th class="r">Min. salidos</th><th>Salió de lo vendido</th></tr>`;
+  document.querySelector('#tblOnsDet tbody').innerHTML=vis.length?vis.map(a=>{ const e=estadoAn(a);
+    return `<tr><td><b>${esc(a.anun)}</b><br><span style="color:var(--muted);font-size:12.5px">${esc([...a.camps].join(' · ')||'—')}</span></td>${varios?`<td class="r num" title="${esc([...a.sops].join(', '))}">${a.sops.size}</td>`:''}
+      <td class="r num">${[...a.durs].sort((x,y)=>x-y).join(' / ')||'—'} s</td><td class="r num">${fmt(a.vend/a.dias)}</td><td class="r num">${fmt(a.real/a.dias)}</td>
+      <td class="r num">${fmt(a.vendSeg/60)}</td><td class="r num"><b>${fmt(a.realSeg/60)}</b></td><td style="white-space:nowrap">${e?`<span class="pill ${ESTADOS[e][1]}">${ESTADOS[e][0]} · ${a.vend?pct(a.real/a.vend):'—'}</span>`:''}</td></tr>`; }).join('')
+    :`<tr><td colspan="8" class="vacio">No hay órdenes activas en estos días.</td></tr>`;
+  const bt=document.getElementById('onsTodas'); bt.hidden=L.length<=LIM; bt.textContent=onsVerTodos?`Ver solo los ${LIM} primeros`:`Ver los ${L.length} anunciantes`; bt.onclick=()=>{ onsVerTodos=!onsVerTodos; renderOnsDetalle(); };
+  const X=[...ex.entries()].sort((a,b)=>b[1].seg-a[1].seg);
+  document.getElementById('onsExtra').innerHTML=X.length?`<p><b style="color:var(--ink)">Sin orden:</b> salieron en estas pantallas y no tienen orden en la planilla para ese soporte (minutos en ${nd===1?'el día':`los ${nd} días`}).</p>${X.map(([k,y])=>`<span class="pill neutro" title="${esc([...y.sops].join(', '))}">${esc(k)} · ${fmt(y.seg/60)} min</span>`).join('')}`:'';
+  const ej=L.find(a=>estadoAn(a)==='ok'&&a.camps.size===1&&a.durs.size===1&&a.real/a.vend<1.5)||L.find(a=>estadoAn(a)==='ok');
+  const dur=ej?[...ej.durs][0]:0, hs=ej&&ej.salH?Math.round(ej.vend/ej.dias/ej.salH*10)/10:0;
   document.getElementById('onsComoDet').innerHTML=`
-    <span><b>Vendido por día</b>: las salidas por hora de la planilla por las horas que la app calcula para el soporte.${ej?` Ejemplo: ${esc(ej.anun)} tiene ${String(salH).replace('.',',')} salidas por hora × ${c.hs} horas = <b>${fmt(ej.vend)}</b> por día.`:''}</span>
-    <span><b>Salió en OnSign</b>: cuántas veces salieron sus piezas ese día${c.pantallas>1?', en promedio por pantalla':''}. Se suman todas las piezas del anunciante.${ej?` ${esc(ej.anun)} salió <b>${fmt(ej.real)}</b> veces, o sea el ${pct(ej.r)} de lo vendido: ${ESTADOS[ej.est][0].toLowerCase()}.`:''}</span>
-    <span>Pasar del 100% es normal: el Plus y las horas de más que está prendida la pantalla suman salidas de regalo.</span>
-    <span>Las piezas se reconocen por el nombre del anunciante dentro del nombre de la pieza. Si en OnSign figura con otro nombre (por ejemplo, la campaña en vez de la marca), puede aparecer como "No salió" y a la vez como "Sin orden".</span>`;
+    <span><b>Salidas por día vendidas</b> y <b>Min. contratados</b> salen de la planilla, igual que en Soportes.${ej?` Ejemplo: ${esc(ej.anun)} tiene ${fmt(ej.salH)} salidas por hora; con ${String(hs).replace('.',',')} horas por día son <b>${fmt(ej.vend/ej.dias)}</b> por día.`:''}</span>
+    <span><b>Salidas por día en OnSign</b>: las veces por día que salieron sus piezas${varios?' (sumando los soportes)':''}, en promedio por pantalla. <b>Min. salidos</b> = esas veces × la duración de la pieza.${ej?` ${esc(ej.anun)} salió <b>${fmt(ej.real/ej.dias)}</b> veces por día${dur?` de ${dur} segundos`:''}, el ${pct(ej.real/ej.vend)} de lo vendido: cumple.`:''}</span>
+    <span>Pasar del 100% es normal: el Plus y las horas de más que está prendida la pantalla suman salidas.</span>
+    <span>Las piezas se reconocen por el nombre del anunciante dentro del nombre de la pieza. Si en OnSign figura con otro nombre, puede aparecer como "No salió" y a la vez como "Sin orden".</span>`;
+}
+function dibujarOnsDia(){
+  if(!window.Chart) return; chartDefaults();
+  const E=onsEnfocados(), dias=diasOns();
+  const D=dias.map((d,i)=>E.reduce((a,r)=>{ const x=r.diario[i]||{}; a.cap+=x.cap||0; a.contr+=x.contr||0; a.aire+=x.aire||0; a.exc+=x.exc||0; a.real+=x.real||0; a.extra+=x.extra||0; return a; },{d,cap:0,contr:0,aire:0,exc:0,real:0,extra:0}));
+  const m=v=>+(v/60).toFixed(1);
+  const ds=[
+    // Como en Soportes: azul lo contratado que entra; rojo, arriba de la capacidad, lo vendido de más (solo con un soporte: en la suma no se ve).
+    {type:'bar',label:'Contratado',data:D.map(x=>m(E.length===1?x.aire:x.contr)),backgroundColor:css('--contr'),stack:'v',order:2,borderRadius:2},
+    {type:'bar',label:'Vendido de más',data:D.map(x=>E.length===1?m(x.exc):0),backgroundColor:css('--limite'),stack:'v',order:2,borderRadius:2},
+    {type:'bar',label:'Salió en OnSign',data:D.map(x=>m(x.real)),backgroundColor:css('--real'),stack:'o',order:2,borderRadius:2},
+    {type:'bar',label:'Sin orden',data:D.map(x=>m(x.extra)),backgroundColor:css('--sinorden'),stack:'o',order:2,borderRadius:2},
+    {type:'line',label:'Capacidad',data:D.map(x=>m(x.cap)),borderColor:css('--limite'),borderWidth:2,pointRadius:0,stepped:'middle',order:1},
+  ];
+  const labels=dias.map(fmtCorto);
+  const capRef=Math.max(0,...ds[4].data), tope=Math.max(capRef,...D.map(x=>m(Math.max(x.contr,x.real+x.extra))));
+  const opts={responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},animation:REDUCE?false:{duration:400},
+    plugins:{legend:{display:false},tooltip:{enabled:false}},
+    scales:{x:{stacked:true,grid:{display:false}},y:{stacked:true,beginAtZero:true,max:tope?Math.ceil(tope*1.1):undefined,title:{display:innerWidth>=600,text:'minutos por día'},grid:{color:css('--line')}}}};
+  if(charts.ons){ charts.ons.data.labels=labels; charts.ons.data.datasets.forEach((x,i)=>x.data=ds[i].data); charts.ons.options.scales.y.max=opts.scales.y.max; charts.ons.update(); }
+  else { charts.ons=new Chart(document.getElementById('chOns'),{data:{labels,datasets:ds},options:opts}); enlazarLectura(charts.ons,lecturaOns); }
+  ONS_DIA=D; lecturaOns(null);
+}
+let ONS_DIA=[];
+function lecturaOns(i){
+  const el=document.getElementById('lecOns'); if(!el||!ONS_DIA.length) return;
+  const x=i==null?ONS_DIA.reduce((a,d)=>({cap:a.cap+d.cap,contr:a.contr+d.contr,real:a.real+d.real,extra:a.extra+d.extra}),{cap:0,contr:0,real:0,extra:0}):ONS_DIA[i];
+  el.classList.toggle('activa',i!=null);
+  el.innerHTML=`<span class="t">${i==null?(ONS_DIA.length>1?'Todos los días':fmtDiaM(ONS_DIA[0].d)):fmtDiaM(ONS_DIA[i].d)}</span><span>${punto('--contr')}Contratado <span class="v">${fmt(x.contr/60)}</span> min</span><span>${punto('--real')}Salió con orden <span class="v">${fmt(x.real/60)}</span> min</span><span>${punto('--sinorden')}Sin orden <span class="v">${fmt(x.extra/60)}</span> min</span><span>Capacidad <span class="v">${fmt(x.cap/60)}</span> min</span><span>Salió <span class="v">${x.contr?pct(x.real/x.contr):'—'}</span> de lo contratado</span>${i==null?'<span class="ayuda">Pasá el mouse por un día para ver el detalle.</span>':''}`;
 }
 function cargarOns(file){
   const tit=document.getElementById('onsTitulo'), sub=document.getElementById('onsSub');
@@ -739,10 +836,10 @@ function cargarOns(file){
   file.text().then(txt=>{
     ONS=leerInformeOns(txt); onsNombre=file.name;
     const dias=[...ONS.keys()].sort(); onsIncompletos=dias.length>1?diasIncompletos(ONS):new Set();
-    const completos=dias.filter(d=>!onsIncompletos.has(d)); onsDia=(completos.length?completos:dias).slice(-1)[0]; onsSop=null;
-    document.getElementById('onsDia').innerHTML=dias.map(d=>`<option value="${d}" ${d===onsDia?'selected':''}>${fmtDiaM(d)}${onsIncompletos.has(d)?' · incompleto':''}</option>`).join('');
+    const completos=dias.filter(d=>!onsIncompletos.has(d)); onsDia=completos.length>1?'todos':(completos.length?completos:dias).slice(-1)[0]; onsSop=null;
+    document.getElementById('onsDia').innerHTML=(completos.length>1?`<option value="todos" selected>Todos (${fmtCorto(completos[0])} al ${fmtCorto(completos[completos.length-1])})</option>`:'')+dias.map(d=>`<option value="${d}" ${d===onsDia?'selected':''}>${fmtDiaM(d)}${onsIncompletos.has(d)?' · incompleto':''}</option>`).join('');
     tit.textContent='Informe cargado: '+file.name;
-    sub.textContent=`${dias.length===1?'1 día':dias.length+' días'}: ${fmtDia(dias[0])}${dias.length>1?' al '+fmtDia(dias[dias.length-1]):''}. El día se elige arriba.${onsIncompletos.size?' Los marcados "incompleto" quedaron cortados (el informe se bajó a mitad del día).':''}`;
+    sub.textContent=`${dias.length===1?'1 día':dias.length+' días'}: ${fmtDia(dias[0])}${dias.length>1?' al '+fmtDia(dias[dias.length-1]):''}. Arriba podés elegir un solo día.${onsIncompletos.size?' Los marcados "incompleto" quedaron cortados (el informe se bajó a mitad del día).':''}`;
     document.getElementById('onsBtn').textContent='Cambiar informe';
     renderOns(); armarSecciones();
   }).catch(e=>{ ONS=null; tit.textContent='No se pudo leer el archivo.'; sub.textContent=e&&e.message||''; renderOns(); });
@@ -754,7 +851,7 @@ function cargarOns(file){
   document.getElementById('onsDia').onchange=e=>{ onsDia=e.target.value; renderOns(); };
 })();
 
-function renderTodo(){ if(vista==='sop'){ renderTabla(); renderDetalle(); } else if(vista==='anun') renderAnun(); else if(vista==='ons') renderOns(); else renderDisp(); }
+function renderTodo(){ if(vista==='sop'){ renderTabla(); renderDetalle(); } else if(vista==='anun') renderAnun(); else if(vista==='ons') renderOns(); else renderDisp(); ajustarPegado(); }
 const sm=document.getElementById('selMes');
 sm.innerHTML=LISTA_MESES.map(k=>`<option value="${k}" ${k===mes?'selected':''}>${MESES[k]}${k>MES_HOY?' · cargado hasta hoy':k===MES_HOY?' · en curso':''}</option>`).join('');
 sm.onchange=()=>{ mes=sm.value; renderTodo(); };
@@ -764,7 +861,7 @@ document.getElementById('estadoDatos').textContent=`Datos de la planilla de Trá
 armarFiltro(); cambiarVista(vista);
 if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>{ if(Object.keys(charts).length) retema(); });
 // Cambio de tema: se redibujan los gráficos con los colores nuevos.
-const retema=()=>{ Object.values(charts).forEach(c=>c.destroy()); charts={}; Object.keys(intro).forEach(k=>intro[k]=false); if(visto.s2) dibujarDia(); if(visto.s4) dibujarPlus(); if(visto.sMes) dibujarMes(); if(visto.sA2){ dibujarAnSop(); dibujarAnHist(); } };
+const retema=()=>{ Object.values(charts).forEach(c=>c.destroy()); charts={}; Object.keys(intro).forEach(k=>intro[k]=false); if(visto.s2) dibujarDia(); if(visto.s4) dibujarPlus(); if(visto.sMes) dibujarMes(); if(visto.sA2){ dibujarAnSop(); dibujarAnHist(); } if(vista==='ons'&&ONS) dibujarOnsDia(); };
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',retema);
 new MutationObserver(retema).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
 

@@ -16,7 +16,7 @@
   /* Marca Reimpulso: azul #0660df protagonista, verde pastel #ddf7b7, negro #141414, fondo #f4f7f1, Inter */
   --bg:#f9fbf7; --surface:#ffffff; --ink:#141414; --muted:#5d655e; --line:#e4e9e0;
   --contr:#0660df; --contr-h:#0551b8; --plus:#b4e27e; --plus-borde:#b4e27e; --plus-hover:#a3d468; --libre:#eceff0; --limite:#d0342c; --warn:#c08412;
-  --chip:#f1f4ee; --pastel:#ddf7b7; --ok:#3d7a17; --shadow:0 6px 18px rgba(20,20,20,.08);
+  --chip:#f1f4ee; --pastel:#ddf7b7; --ok:#3d7a17; --real:#8cc653; --sinorden:#9ba49c; --shadow:0 6px 18px rgba(20,20,20,.08);
   --side:#141414; --side-ink:#f4f7f1; --side-muted:#9ba49c;
   --f-display:"Inter", "Helvetica Neue", Arial, sans-serif;
   --f-body:"Inter", "Helvetica Neue", Arial, sans-serif;
@@ -24,11 +24,11 @@
 }
 @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
   --bg:#0f1210; --surface:#181c19; --ink:#f1f4ee; --muted:#9aa39b; --line:#2a302b;
-  --contr:#4b8ff2; --contr-h:#6aa3f5; --plus:#c9ef9a; --plus-borde:#c9ef9a; --plus-hover:#d8f5b4; --libre:#252b26; --limite:#f0604f; --warn:#e0a743; --chip:#1f2520; --pastel:#ddf7b7; --ok:#b6e58a; --shadow:0 6px 18px rgba(0,0,0,.35);
+  --contr:#4b8ff2; --contr-h:#6aa3f5; --plus:#c9ef9a; --plus-borde:#c9ef9a; --plus-hover:#d8f5b4; --libre:#252b26; --limite:#f0604f; --warn:#e0a743; --chip:#1f2520; --pastel:#ddf7b7; --ok:#b6e58a; --real:#a9da7a; --sinorden:#6f786f; --shadow:0 6px 18px rgba(0,0,0,.35);
   --side:#0a0c0b; --side-ink:#f1f4ee; --side-muted:#8d968e; color-scheme:dark } }
 :root[data-theme="dark"]{
   --bg:#0f1210; --surface:#181c19; --ink:#f1f4ee; --muted:#9aa39b; --line:#2a302b;
-  --contr:#4b8ff2; --contr-h:#6aa3f5; --plus:#c9ef9a; --plus-borde:#c9ef9a; --plus-hover:#d8f5b4; --libre:#252b26; --limite:#f0604f; --warn:#e0a743; --chip:#1f2520; --pastel:#ddf7b7; --ok:#b6e58a; --shadow:0 6px 18px rgba(0,0,0,.35);
+  --contr:#4b8ff2; --contr-h:#6aa3f5; --plus:#c9ef9a; --plus-borde:#c9ef9a; --plus-hover:#d8f5b4; --libre:#252b26; --limite:#f0604f; --warn:#e0a743; --chip:#1f2520; --pastel:#ddf7b7; --ok:#b6e58a; --real:#8fcf5c; --sinorden:#7d867e; --shadow:0 6px 18px rgba(0,0,0,.35);
   --side:#0a0c0b; --side-ink:#f1f4ee; --side-muted:#8d968e; color-scheme:dark }
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.45;margin:0}
@@ -100,6 +100,10 @@ tbody tr.sel{background:color-mix(in srgb,var(--contr) 9%,var(--surface))}
 .bar{position:relative;height:14px;background:var(--libre);border-radius:3px;overflow:hidden;min-width:180px}
 .bar span{position:absolute;top:0;bottom:0;width:0}
 .bar span.fin{border-radius:0 3px 3px 0}
+.pegado thead tr.ley td{padding:10px 7px 8px;border-bottom:1px solid var(--line)} .pegado thead tr.ley .ons-leyenda{margin:0}
+@media (min-width:700px){ .tbl-scroll.pegado.fija{overflow:visible} .pegado.fija thead{position:sticky;top:var(--alto-top,0px);z-index:3} .pegado thead{background:var(--surface)} .pegado thead th,.pegado thead td{background:var(--surface)} .pegado thead tr.ley td{box-shadow:0 -12px 0 var(--surface)} .pegado thead tr:last-child th{box-shadow:0 1px 0 var(--line)} }
+.t-ons,.t-onsd{font-size:13px} .t-ons .bar,.t-onsd .bar{min-width:80px} .t-ons .sopname{white-space:normal} .t-ons td:first-child{min-width:160px} .t-ons .pill{font-size:11px;padding:2px 7px;white-space:normal;display:inline-block;max-width:96px;text-align:center;line-height:1.3} .t-ons .delta-prev{white-space:nowrap} .t-ons td,.t-ons th,.t-onsd td,.t-onsd th{padding-inline:6px} .t-ons th,.t-onsd th{white-space:normal;vertical-align:bottom}
+.bar .r{background:var(--real)} .bar .so{background:var(--sinorden)} .bar.fina{height:8px} .barras2{display:flex;flex-direction:column;gap:3px}
 .bar .c{background:var(--contr)} .bar .p{background:var(--plus)} .bar .x{background:var(--limite)}
 .leg-exc[hidden]{display:none!important}
 .bar .sobra{position:absolute;right:6px;top:0;bottom:0;display:flex;align-items:center;font-size:10.5px;font-weight:600;color:#fff;white-space:nowrap;font-variant-numeric:tabular-nums;z-index:1}
@@ -269,9 +273,8 @@ td.cel:hover .celda{transform:scale(1.06);box-shadow:var(--shadow)}
       <p>Pauta tradicional del mes, en minutos. Tocá un soporte para ver su detalle abajo; tocalo de nuevo para volver a la suma. El filtro de arriba elige qué soportes entran.</p>
     </div>
     <div class="panel">
-      <div class="legend" style="margin-bottom:10px"><span><i style="background:var(--contr)"></i>Contratado</span><span><i style="background:var(--plus)"></i>Plus</span><span><i style="background:var(--libre)"></i>Libre</span><span><i style="background:var(--limite)"></i>Sobrevendido</span><span style="color:var(--muted)">La barra completa es el 100% de la capacidad</span></div>
-      <div class="tbl-scroll"><table id="tblSop">
-        <thead><tr><th>Soporte</th><th class="r">Capacidad</th><th class="r">Contratado</th><th class="r">Plus</th><th class="r">Ocupación vendida</th><th class="r" id="thDelta">vs. mes anterior</th><th>Ocupación del mes</th><th>Estado</th></tr></thead>
+      <div class="tbl-scroll pegado"><table id="tblSop" class="t-ons">
+        <thead><tr class="ley"><td colspan="8"><div class="legend"><span><i style="background:var(--contr)"></i>Contratado</span><span><i style="background:var(--plus)"></i>Plus</span><span><i style="background:var(--libre)"></i>Libre</span><span><i style="background:var(--limite)"></i>Sobrevendido</span><span style="color:var(--muted)">La barra completa es el 100% de la capacidad</span></div></td></tr><tr><th>Soporte</th><th class="r">Capacidad</th><th class="r">Contratado</th><th class="r">Plus</th><th class="r">Ocupación vendida</th><th class="r" id="thDelta">vs. mes anterior</th><th>Ocupación del mes</th><th>Estado</th></tr></thead>
         <tbody></tbody><tfoot></tfoot>
       </table></div>
       <details class="leer"><summary>¿Cómo se lee esta tabla?</summary><div>
@@ -280,6 +283,7 @@ td.cel:hover .celda{transform:scale(1.06);box-shadow:var(--shadow)}
         <span><b>Plus</b>: los minutos extra que se regalaron con el espacio que sobraba.</span>
         <span><b>Ocupación vendida</b>: contratado ÷ capacidad. Si pasa de 100%, el soporte está sobrevendido: se vendió más de lo que entra y no hay Plus.</span>
         <span>La <b>barra completa es el 100%</b> de la capacidad. Azul es lo vendido, verde el Plus y lo gris es espacio que quedó libre. Si el soporte está sobrevendido, la barra entera se pinta de rojo y al lado dice cuánto se pasó.</span>
+        <span><b>Estado</b>: "Sobrevendido" si el mes entero pasa del 100%. Si el mes da menos pero algunos días se vendió más de lo que entra, dice cuántos días (por ejemplo, "Sobrevendido 8 días"). La app de tráfico muestra la ocupación del día de hoy, por eso puede marcar más de 100% en un soporte que acá, en el promedio del mes, tiene lugar.</span>
         <span><b>vs. mes anterior</b>: cuánto cambió la ocupación vendida contra el mes anterior, en <b>puntos</b>. Un punto es la diferencia entre dos porcentajes: si en agosto estaba en 38% y en setiembre en 52%, subió 14 puntos. Verde ▲ subió, rojo ▼ bajó. Abajo se ve el valor del mes anterior.</span>
       </div></details>
     </div>
@@ -422,7 +426,7 @@ td.cel:hover .celda{transform:scale(1.06);box-shadow:var(--shadow)}
   <div class="vista" id="vOns" hidden>
   <section id="sO0">
     <div class="sec-head">
-      <div><div class="eyebrow">1 · Informe de OnSign</div><h2>¿Salió lo que se vendió?</h2></div>
+      <div><div class="eyebrow">Informe de OnSign</div><h2>¿Salió lo que se vendió?</h2></div>
       <p>Compara lo vendido en la planilla con lo que realmente pasó en las pantallas, según un informe bajado de OnSign. El archivo se lee solo en esta compu: no se sube ni se guarda en ningún lado.</p>
     </div>
     <div class="panel">
@@ -440,32 +444,52 @@ td.cel:hover .celda{transform:scale(1.06);box-shadow:var(--shadow)}
   </section>
   <section id="sO1" hidden>
     <div class="sec-head">
-      <div><div class="eyebrow">2 · Por soporte</div><h2>Cómo salió cada soporte</h2></div>
-      <p id="onsSopSub"></p>
+      <div><div class="eyebrow">1 · Ventas por soporte</div><h2>Lo vendido contra lo que salió en OnSign</h2></div>
+      <p><span id="onsPer"></span> Pauta tradicional en minutos, igual que en Soportes. Tocá un soporte para ver su detalle abajo; tocalo de nuevo para volver a la suma.</p>
     </div>
-    <div class="kpis" id="onsKpis"></div>
     <div class="panel">
-      <div class="ons-leyenda">
-        <span><span class="pill ok">Cumple</span>salió al menos el 80% de lo vendido</span>
-        <span><span class="pill alto">De menos</span>salió, pero menos del 80% de lo vendido</span>
-        <span><span class="pill exc">No salió</span>vendido, pero ninguna vez en el día</span>
-        <span><span class="pill neutro">Sin orden</span>salió en la pantalla y no está vendido en la planilla</span>
-      </div>
-      <div class="tbl-scroll"><table id="tblOns"><thead><tr><th>Soporte</th><th class="r">Pantallas</th><th class="r">Anunciantes vendidos</th><th class="r">Cumple</th><th class="r">De menos</th><th class="r">No salió</th><th class="r">Sin orden</th></tr></thead><tbody></tbody></table></div>
+      <div class="tbl-scroll pegado"><table id="tblOns" class="t-ons">
+        <thead><tr class="ley"><td colspan="8"><div class="legend"><span><i style="background:var(--real)"></i>Salió con orden</span><span><i style="background:var(--sinorden)"></i>Salió sin orden</span><span><i style="background:var(--libre)"></i>Libre</span><span><i style="background:var(--limite)"></i>Salió más de lo que entra según la app</span><span style="color:var(--muted)">La barra es lo que salió en OnSign; la barra completa es el 100% de la capacidad</span></div></td></tr><tr><th>Soporte</th><th class="r">Capacidad</th><th class="r">Contratado</th><th class="r">Salió en OnSign</th><th class="r">Ocupación vendida</th><th class="r">Ocupación en OnSign</th><th>Lo que salió</th><th>Estado</th></tr></thead>
+        <tbody></tbody><tfoot></tfoot>
+      </table></div>
       <details class="leer"><summary>¿Cómo se lee esta tabla?</summary><div>
-        <span>Cada fila es un soporte en el día elegido arriba. <b>Anunciantes vendidos</b> son los que tienen una orden activa ese día en la planilla. Las otras columnas dicen cuántos de ellos cumplieron, salieron de menos o no salieron.</span>
-        <span><b>Sin orden</b> cuenta los anunciantes que aparecen en la pantalla pero no tienen orden en la planilla para ese soporte: puede faltar cargarlos o haber quedado de antes.</span>
-        <span>Si un soporte dice "¿estuvo apagada?", ese día tuvo muchas menos salidas que en los otros días del informe. Todos sus anunciantes van a dar de menos, aunque estén bien programados.</span>
+        <span><b>Capacidad</b> y <b>Contratado</b> son los mismos números de la vista Soportes, pero solo para los días del informe.</span>
+        <span><b>Salió en OnSign</b>: los minutos de pauta que realmente salieron en las pantallas del soporte (veces que salió cada pieza × su duración). Si el soporte tiene varias pantallas, es el promedio por pantalla, igual que la capacidad.</span>
+        <span><b>Ocupación en OnSign</b>: lo que salió ÷ la capacidad. Se compara con la ocupación vendida de al lado: si la de OnSign es mucho más baja, hay avisos vendidos que no están saliendo; si es más alta, salió de más (Plus, avisos sin orden o pantallas prendidas más horas que las que calcula la app).</span>
+        <span>La <b>barra</b> muestra lo que salió en OnSign: <b>verde</b> los avisos que tienen orden y <b>gris oscuro</b> los que salieron sin estar en la planilla de ese soporte. Si salió más de lo que entra según la app (por ejemplo, porque la pantalla está prendida más horas), la barra entera va en <b>rojo</b> y dice cuánto se pasó.</span>
+        <span><b>Estado</b>: de los anunciantes que tienen orden, si alguno no salió ninguna vez (rojo), si alguno salió menos del 80% de lo vendido (naranja) o si todos cumplen (verde). Pasá el mouse para ver el detalle; anunciante por anunciante está abajo, en Contenidos.</span>
       </div></details>
     </div>
   </section>
+
   <section id="sO2" hidden>
     <div class="sec-head">
-      <div><div class="eyebrow">3 · Por anunciante</div><h2 id="onsDetTit">Anunciantes del soporte</h2></div>
-      <p id="onsDetSub"></p>
+      <div><div class="eyebrow">2 · Desglose diario</div><h2 id="onsT2">Vendido y salido por día</h2></div>
+      <p>Minutos por día: lo contratado en la planilla al lado de lo que salió en OnSign, contra la capacidad del día.</p>
+    </div>
+    <div class="focobar" id="onsFoco"></div>
+    <div class="kpis" id="onsKpis"></div>
+    <div class="panel">
+      <div class="legend" style="margin-bottom:10px"><span><i style="background:var(--contr)"></i>Contratado (planilla)</span><span><i style="background:var(--real)"></i>Salió en OnSign</span><span><i style="background:var(--sinorden)"></i>Salió sin orden</span><span><i style="background:var(--limite)"></i>Vendido de más</span><span><i class="ln" style="background:var(--limite)"></i>Capacidad del día</span></div>
+      <div class="lectura" id="lecOns" aria-live="polite"></div>
+      <div class="chartbox"><canvas id="chOns" aria-label="Minutos vendidos y salidos por día"></canvas></div>
+      <details class="leer"><summary>¿Cómo se lee este gráfico?</summary><div>
+        <span>Cada día tiene dos barras. La <b>azul</b> es lo contratado en la planilla. La de al lado es lo que salió en OnSign: <b>verde</b> los avisos con orden y, arriba, en <b>gris oscuro</b>, los que salieron sin orden.</span>
+        <span>Si un soporte está vendido de más, lo que no entra se pinta de <b>rojo</b> arriba de la azul, igual que en Soportes.</span>
+        <span>La <b>línea roja</b> es la capacidad del día según la app. Si la barra de OnSign queda muy por debajo de la azul, ese día faltaron avisos; si un día baja de golpe, puede que la pantalla haya estado apagada.</span>
+        <span>Al pasar el mouse por un día, sus números aparecen en la franja de arriba del gráfico.</span>
+      </div></details>
+    </div>
+  </section>
+
+  <section id="sO3" hidden>
+    <div class="sec-head">
+      <div><div class="eyebrow">3 · Contenidos publicitarios</div><h2 id="onsT3">Anunciantes: vendido contra salido</h2></div>
+      <p>Cada anunciante con orden en esos días: lo que se vendió y lo que salió en OnSign, en salidas y en minutos.</p>
     </div>
     <div class="panel">
-      <div class="tbl-scroll"><table id="tblOnsDet"><thead><tr><th>Anunciante</th><th class="r">Vendido por día</th><th class="r">Salió en OnSign</th><th class="r">De lo vendido</th><th>Estado</th></tr></thead><tbody></tbody></table></div>
+      <div class="tbl-scroll pegado"><table id="tblOnsDet" class="t-onsd"><thead></thead><tbody></tbody></table></div>
+      <button type="button" id="onsTodas" class="btn" hidden>Ver todos</button>
       <div class="ons-extra" id="onsExtra"></div>
       <details class="leer"><summary>¿Cómo se lee esta tabla?</summary><div id="onsComoDet"></div></details>
     </div>
